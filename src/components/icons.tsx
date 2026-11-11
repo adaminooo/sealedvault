@@ -74,5 +74,5 @@ export const ChevronIcon = () => (
 
 /** Logo SealedVault – zdroj je public/logo.svg (z něj se generují i ikony appky) */
 export const Logo = ({ size = 32 }: { size?: number }) => (
-  <img src="/logo.svg" width={size} height={size} alt="" className="logo-img" draggable={false} />
+  <img src={`${import.meta.env.BASE_URL}logo.svg`} width={size} height={size} alt="" className="logo-img" draggable={false} />
 );
