@@ -538,4 +538,11 @@ export const EN: Record<string, string> = {
   'Zatím žádná data': 'No data yet',
   'Vývoj hodnoty za 90 dní': 'Value over the last 90 days',
   'Cena za 30 dní': 'Price over 30 days',
+  'Název produktu': 'Product name',
+  'Upravit edici a typ': 'Edit set and type',
+  'Vybrat edici a typ ručně': 'Pick set and type manually',
+  'Nákup': 'Purchase',
+  'dnes': 'today',
+  'ruční cena, poštovné, odkaz na obrázek': 'manual price, shipping, image link',
+  'Premium Collection': 'Premium Collection',
 };

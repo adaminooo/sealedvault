@@ -5,7 +5,7 @@ import { searchSets } from '../lib/catalog';
 import { compressImage, isValidImageUrl } from '../lib/image';
 import { fromDisplay, money, toDisplay } from '../lib/format';
 import { useSetCatalog } from '../hooks/useSetCatalog';
-import { ProductImage, TYPE_ABBR } from './ProductImage';
+import { ProductImage } from './ProductImage';
 import { ChevronIcon } from './icons';
 import { CmPicker } from './CmPicker';
 import { bestMatch, inferType, marketPrice, productImageFor, toCzk, type MarketProduct, type MarketSnapshot } from '../lib/market';
@@ -43,13 +43,13 @@ const TYPE_NAMES: Record<ProductType, string> = {
 };
 
 const TYPE_LABELS: Record<ProductType, string> = {
-  'Booster box': 'Booster box',
-  ETB: 'Elite Trainer',
+  'Booster box': 'Booster Box',
+  ETB: 'Elite Trainer Box',
   Display: 'Display',
   'Booster bundle': 'Bundle',
   UPC: 'Ultra-Premium',
-  'Premium Collection': 'Premium',
-  'Collection box': 'Kolekce / box',
+  'Premium Collection': 'Premium Collection',
+  'Collection box': 'Kolekce',
   Tin: 'Tin',
   Blister: 'Blister',
   Booster: 'Booster',
@@ -73,6 +73,8 @@ export function ItemForm({ initial, defaultGame, currency, market, marketError, 
   const [set, setSet] = useState(initial?.set ?? '');
   const [setLogo, setSetLogo] = useState<string | undefined>(initial?.setLogo);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // ruční výběr edice a typu – u nové položky schovaný (hlavní cesta je vyhledávání)
+  const [manual, setManual] = useState(!!initial && !initial.cmProductId);
   const [type, setType] = useState<ProductType>(initial?.type ?? 'Booster box');
   const [name, setName] = useState(initial?.name ?? '');
   const [nameTouched, setNameTouched] = useState(!!initial);
@@ -131,7 +133,8 @@ export function ItemForm({ initial, defaultGame, currency, market, marketError, 
   const shownLogo = setLogo ?? catalog.find((s) => s.name.toLowerCase() === set.trim().toLowerCase())?.logo;
 
   const cur = currency === 'CZK' ? t('Kč') : '€';
-  const autoName = [set.trim(), TYPE_NAMES[type]].filter(Boolean).join(' ');
+  // automatický název až po výběru edice (prázdný formulář ukáže jen nápovědu)
+  const autoName = set.trim() ? [set.trim(), TYPE_NAMES[type]].filter(Boolean).join(' ') : '';
   const effectiveName = nameTouched ? name : autoName;
   const q = parseInt(quantity, 10);
   const quantityNum = Number.isFinite(q) ? q : 1;
@@ -278,9 +281,12 @@ export function ItemForm({ initial, defaultGame, currency, market, marketError, 
     }
   }
 
+  const matched = typeof cmChoice === 'number' || (!!cmProduct && cmChoice === undefined && !!initial);
+  const priceNow = autoCurrent != null ? autoCurrent : null;
+
   return (
     <form
-      className="qform"
+      className="qform v2"
       noValidate
       onSubmit={(e: FormEvent) => {
         e.preventDefault();
@@ -288,190 +294,186 @@ export function ItemForm({ initial, defaultGame, currency, market, marketError, 
       }}
     >
       {/* Hra */}
-      <div className="segmented big">
+      <div className="qf-games" role="tablist" aria-label={t('Hra')}>
         {GAMES.map((g) => (
-          <button type="button" key={g} className={g === game ? 'active' : ''} onClick={() => changeGame(g)}>
+          <button type="button" role="tab" aria-selected={g === game} key={g} className={g === game ? 'active' : ''} onClick={() => changeGame(g)}>
+            <i className={`game-dot g-${g === 'Pokémon' ? 'pokemon' : g === 'One Piece' ? 'onepiece' : 'riftbound'}`} />
             {g}
           </button>
         ))}
       </div>
 
-      {/* Rychlé hledání produktu na tržišti – vyplní vše najednou */}
-      <ProductSearch market={market} game={game} currency={currency} onPick={pickProduct} />
+      {/* ---------- Produkt ---------- */}
+      <section className="qf-card">
+        <ProductSearch market={market} game={game} currency={currency} onPick={(p) => { pickProduct(p); setManual(false); }} />
 
-      <div className="or-sep"><span>{t('nebo vyber edici a typ')}</span></div>
-
-      {/* Edice s vyhledáváním v katalogu */}
-      <div className="field">
-        <span>{t('Edice')}</span>
-        <div className="set-picker">
-          <div className="set-input">
-            {shownLogo ? <img src={shownLogo} alt="" referrerPolicy="no-referrer" /> : <span className="set-input-ph" />}
-            <input
-              value={set}
-              onChange={(e) => typeSet(e.target.value)}
-              onFocus={() => setPickerOpen(true)}
-              onBlur={() => setTimeout(() => setPickerOpen(false), 120)}
-              placeholder={game === 'Pokémon' ? t('Hledej edici, např. Surging Sparks') : game === 'One Piece' ? t('Hledej edici, např. Romance Dawn') : t('Hledej edici, např. Origins')}
-              autoComplete="off"
-              enterKeyHint="done"
-            />
-          </div>
-          {pickerOpen && matches.length > 0 && (
-            <ul className="set-list" role="listbox">
-              {matches.map((s) => (
-                <li key={s.id}>
-                  <button
-                    type="button"
-                    className={s.name === set ? 'active' : ''}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      setSet(s.name);
-                      setSetLogo(s.logo);
-                      setPickerOpen(false);
-                    }}
-                  >
-                    <span className="set-logo">{s.logo ? <img src={s.logo} alt="" loading="lazy" referrerPolicy="no-referrer" /> : s.name.slice(0, 2)}</span>
-                    <span className="set-name">{s.name}</span>
-                    <span className="set-meta">
-                      {[s.series, s.releaseDate?.slice(0, 4)].filter(Boolean).join(' · ') || (s.id.startsWith('own-') ? 'tvoje' : '')}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      {/* Typ produktu */}
-      <div className="field">
-        <span>{t('Typ produktu')}</span>
-        <div className="type-grid">
-          {PRODUCT_TYPES.map((t) => (
-            <button type="button" key={t} className={`type-chip ${t === type ? 'active' : ''}`} onClick={() => setType(t)}>
-              <b>{TYPE_ABBR[t]}</b>
-              <span>{TYPE_LABELS[t]}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Náhled + název */}
-      <div className="preview-row">
-        <button type="button" className="image-pick" onClick={() => fileRef.current?.click()} aria-label={t('Přidat fotku produktu')}>
-          <ProductImage game={game} type={type} image={image || undefined} productImage={productImage} setLogo={shownLogo} size="lg" />
-          <span className="image-pick-label">{imageBusy ? '…' : image ? t('Změnit') : t('+ Foto')}</span>
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) pickFile(f);
-            e.target.value = '';
-          }}
-        />
-        <label className="field grow">
-          <span>{t('Název')} {nameTouched ? '' : t('(vyplní se sám)')}</span>
-          <input
-            value={effectiveName}
-            onChange={(e) => {
-              setNameTouched(true);
-              setName(e.target.value);
-            }}
-            placeholder={t('např. Prismatic Evolutions ETB')}
-          />
-          {image && (
-            <button type="button" className="link-btn" onClick={() => setImage('')}>
-              {t('Odebrat obrázek')}
-            </button>
-          )}
-        </label>
-      </div>
-
-      {/* Počet + cena */}
-      <div className="qty-price">
-        <div className="field">
-          <span>{t('Počet')}</span>
-          <div className="stepper">
-            <button type="button" onClick={() => step(-1)} aria-label={t('Méně')} disabled={q <= 1}>−</button>
-            <input inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ''))} aria-label={t('Počet kusů')} />
-            <button type="button" onClick={() => step(1)} aria-label={t('Více')}>+</button>
-          </div>
-        </div>
-        <label className="field grow">
-          <span>{t('Cena za kus')}</span>
-          <div className="money-input">
-            <input inputMode="decimal" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} placeholder="0" />
-            <span>{cur}</span>
-          </div>
-        </label>
-      </div>
-
-      {total > 0 && (
-        <p className="total-line">
-          {t('Celkem')} <b>{money(total, currency)}</b>
-          {q > 1 && <span> · {q} {t('×')} {money(bp, currency)}</span>}
-          {autoCurrent != null && Number.isFinite(q) && (
-            <span className={autoCurrent * q >= total ? 'pos' : 'neg'}>
-              {' '}{t('· dnes')} {money(autoCurrent * q, currency)}
-            </span>
-          )}
-        </p>
-      )}
-
-      {/* Cardmarket */}
-      <CmPicker
-        market={market}
-        marketError={marketError}
-        query={cmQuery}
-        product={cmProduct}
-        isAuto={cmChoice === undefined}
-        onPick={(p) => setCmChoice(p ? p.id : null)}
-        priceAuto={priceAuto}
-        onPriceAuto={setPriceAuto}
-        currency={currency}
-      />
-
-      {/* Fotky (stav balení, detail poškození…) */}
-      <div className="field">
-        <span>{t('Fotky')} {photos.length > 0 && `(${photos.length}/8)`}</span>
-        <div className="photo-strip">
-          {photos.map((src, i) => (
-            <span key={i} className="photo-thumb">
-              <img src={src} alt="" />
-              <button type="button" aria-label={t('Odebrat fotku')} onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))}>{t('×')}</button>
-            </span>
-          ))}
-          {photos.length < 8 && (
-            <button type="button" className="photo-add" onClick={() => photosRef.current?.click()} disabled={imageBusy}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <div className="qf-product">
+          <button type="button" className="qf-image" onClick={() => fileRef.current?.click()} aria-label={t('Přidat fotku produktu')}>
+            <ProductImage game={game} type={type} image={image || undefined} productImage={productImage} setLogo={shownLogo} size="lg" />
+            <span className="qf-cam" aria-hidden>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                 <circle cx="12" cy="13" r="4" />
               </svg>
-              <span>{imageBusy ? '…' : t('Přidat')}</span>
-            </button>
-          )}
+            </span>
+          </button>
           <input
-            ref={photosRef}
+            ref={fileRef}
             type="file"
             accept="image/*"
-            multiple
             hidden
             onChange={(e) => {
-              if (e.target.files?.length) addPhotos(e.target.files);
+              const f = e.target.files?.[0];
+              if (f) pickFile(f);
               e.target.value = '';
             }}
           />
+          <div className="qf-product-text">
+            <textarea
+              className="qf-name"
+              rows={effectiveName.length > 26 ? 2 : 1}
+              value={effectiveName}
+              onChange={(e) => {
+                setNameTouched(true);
+                setName(e.target.value.replace(/\n/g, ' '));
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+              placeholder={t('Název produktu')}
+              aria-label={t('Název')}
+            />
+            <span className="qf-meta">
+              {[set.trim() || null, TYPE_LABELS[type]].filter(Boolean).join(' · ')}
+              {priceNow != null && <b className="qf-now">{money(priceNow, currency)} / {t('ks')}</b>}
+            </span>
+            {image && (
+              <button type="button" className="link-btn" onClick={() => setImage('')}>
+                {t('Odebrat obrázek')}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Stav a poznámka */}
-      <div className="field">
-        <span>{t('Stav produktu')}</span>
+        <button type="button" className={`qf-manual-toggle ${manual ? 'open' : ''}`} onClick={() => setManual(!manual)} aria-expanded={manual}>
+          <ChevronIcon />
+          {matched ? t('Upravit edici a typ') : t('Vybrat edici a typ ručně')}
+        </button>
+
+        {manual && (
+          <div className="qf-manual">
+            {/* Edice s vyhledáváním v katalogu */}
+            <div className="field">
+              <span>{t('Edice')}</span>
+              <div className="set-picker">
+                <div className="set-input">
+                  {shownLogo ? <img src={shownLogo} alt="" referrerPolicy="no-referrer" /> : <span className="set-input-ph" />}
+                  <input
+                    value={set}
+                    onChange={(e) => typeSet(e.target.value)}
+                    onFocus={() => setPickerOpen(true)}
+                    onBlur={() => setTimeout(() => setPickerOpen(false), 120)}
+                    placeholder={game === 'Pokémon' ? t('Hledej edici, např. Surging Sparks') : game === 'One Piece' ? t('Hledej edici, např. Romance Dawn') : t('Hledej edici, např. Origins')}
+                    autoComplete="off"
+                    enterKeyHint="done"
+                  />
+                </div>
+                {pickerOpen && matches.length > 0 && (
+                  <ul className="set-list" role="listbox">
+                    {matches.map((s) => (
+                      <li key={s.id}>
+                        <button
+                          type="button"
+                          className={s.name === set ? 'active' : ''}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setSet(s.name);
+                            setSetLogo(s.logo);
+                            setPickerOpen(false);
+                          }}
+                        >
+                          <span className="set-logo">{s.logo ? <img src={s.logo} alt="" loading="lazy" referrerPolicy="no-referrer" /> : s.name.slice(0, 2)}</span>
+                          <span className="set-name">{s.name}</span>
+                          <span className="set-meta">
+                            {[s.series, s.releaseDate?.slice(0, 4)].filter(Boolean).join(' · ') || (s.id.startsWith('own-') ? 'tvoje' : '')}
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
+            {/* Typ produktu */}
+            <div className="field">
+              <span>{t('Typ produktu')}</span>
+              <div className="type-pills">
+                {PRODUCT_TYPES.map((pt) => (
+                  <button type="button" key={pt} className={pt === type ? 'active' : ''} aria-pressed={pt === type} onClick={() => setType(pt)}>
+                    {t(TYPE_LABELS[pt])}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Párování s tržištěm */}
+        <CmPicker
+          market={market}
+          marketError={marketError}
+          query={cmQuery}
+          product={cmProduct}
+          isAuto={cmChoice === undefined}
+          onPick={(p) => setCmChoice(p ? p.id : null)}
+          priceAuto={priceAuto}
+          onPriceAuto={setPriceAuto}
+          currency={currency}
+        />
+      </section>
+
+      {/* ---------- Nákup ---------- */}
+      <section className="qf-card">
+        <h4 className="qf-title">{t('Nákup')}</h4>
+        <div className="qf-buy">
+          <div className="field">
+            <span>{t('Počet')}</span>
+            <div className="stepper">
+              <button type="button" onClick={() => step(-1)} aria-label={t('Méně')} disabled={q <= 1}>−</button>
+              <input inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ''))} aria-label={t('Počet kusů')} />
+              <button type="button" onClick={() => step(1)} aria-label={t('Více')}>+</button>
+            </div>
+          </div>
+          <label className="field">
+            <span>{t('Cena za kus')}</span>
+            <div className="money-input">
+              <input inputMode="decimal" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} placeholder="0" />
+              <span>{cur}</span>
+            </div>
+          </label>
+          <label className="field">
+            <span>{t('Datum nákupu')}</span>
+            <input type="date" value={buyDate} onChange={(e) => setBuyDate(e.target.value)} />
+          </label>
+        </div>
+        {total > 0 && (
+          <div className="qf-total">
+            <span>
+              {t('Celkem')}
+              {q > 1 && <em> · {q} {t('×')} {money(bp, currency)}</em>}
+            </span>
+            <b>{money(total, currency)}</b>
+            {priceNow != null && Number.isFinite(q) && (
+              <span className={`qf-total-now ${priceNow * q >= total ? 'pos' : 'neg'}`}>
+                {t('dnes')} {money(priceNow * q, currency)}
+              </span>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ---------- Stav, fotky, poznámka ---------- */}
+      <section className="qf-card">
+        <h4 className="qf-title">{t('Stav produktu')}</h4>
         <div className="cond-chips">
           {CONDITIONS.map((c) => {
             const on = condition.includes(c.id);
@@ -496,21 +498,50 @@ export function ItemForm({ initial, defaultGame, currency, market, marketError, 
             );
           })}
         </div>
-      </div>
-      <label className="field">
-        <span>{t('Poznámka')}</span>
+
+        <div className="photo-strip">
+          {photos.map((src, i) => (
+            <span key={i} className="photo-thumb">
+              <img src={src} alt="" />
+              <button type="button" aria-label={t('Odebrat fotku')} onClick={() => setPhotos((p) => p.filter((_, j) => j !== i))}>{t('×')}</button>
+            </span>
+          ))}
+          {photos.length < 8 && (
+            <button type="button" className="photo-add" onClick={() => photosRef.current?.click()} disabled={imageBusy}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+              <span>{imageBusy ? '…' : photos.length ? t('Další') : t('Fotky')}</span>
+            </button>
+          )}
+          <input
+            ref={photosRef}
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            onChange={(e) => {
+              if (e.target.files?.length) addPhotos(e.target.files);
+              e.target.value = '';
+            }}
+          />
+        </div>
+
         <textarea
+          className="qf-note"
           rows={2}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder={quantityNum > 1 ? t('např. 1 ks má natrženou fólii, koupeno na Cardmarketu…') : t('např. koupeno na Cardmarketu, malý důlek na rohu…')}
+          aria-label={t('Poznámka')}
+          placeholder={quantityNum > 1 ? t('např. 1 ks má natrženou fólii, koupeno na Cardmarketu…') : t('např. koupeno na Cardmarketu, malý důlek na rohu…')}
         />
-      </label>
+      </section>
 
       {/* Další údaje */}
       <button type="button" className={`more-toggle ${more ? 'open' : ''}`} onClick={() => setMore(!more)}>
         <ChevronIcon /> {t('Další údaje')}
-        <span className="muted">{t('aktuální cena, datum, poštovné, obrázek')}</span>
+        <span className="muted">{t('ruční cena, poštovné, odkaz na obrázek')}</span>
       </button>
 
       {more && (
@@ -524,14 +555,10 @@ export function ItemForm({ initial, defaultGame, currency, market, marketError, 
             )}
           </label>
           <label className="field">
-            <span>{t('Datum nákupu')}</span>
-            <input type="date" value={buyDate} onChange={(e) => setBuyDate(e.target.value)} />
-          </label>
-          <label className="field">
             <span>{t('Poštovné / poplatky (')}{cur})</span>
             <input inputMode="decimal" value={fees} onChange={(e) => setFees(e.target.value)} placeholder={t('celkem')} />
           </label>
-          <label className="field">
+          <label className="field full">
             <span>{t('Odkaz na obrázek')}</span>
             <input
               value={image.startsWith('data:') ? '' : image}
@@ -545,7 +572,7 @@ export function ItemForm({ initial, defaultGame, currency, market, marketError, 
 
       {error && <p className="form-error">{error}</p>}
 
-      <div className="form-actions">
+      <div className="form-actions sticky-actions">
         {onDelete ? (
           <button type="button" className="btn danger" onClick={onDelete}>{t('Smazat')}</button>
         ) : (

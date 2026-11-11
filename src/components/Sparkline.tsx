@@ -13,7 +13,8 @@ interface Props {
 
 /** Mini graf průběhu (bez os) – u produktů a na hlavní kartě */
 export function Sparkline({ values, tone, className = '', area = true, stroke = 1.6 }: Props) {
-  const id = useId();
+  // bez dvojteček z useId – Safari je v odkazu url(#…) nemusí přečíst
+  const id = useId().replace(/[^a-zA-Z0-9_-]/g, '');
   if (values.length < 2) return null;
   const W = 100;
   const H = 32;

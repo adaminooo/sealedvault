@@ -1410,7 +1410,8 @@ p, .hint, .pm-features p, .pm-lock-card p { text-wrap: pretty; }
 /* Křivka skutečného vývoje na hlavní kartě */
 .hero-trend.real { height: 34%; opacity: 0.7; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 30%); mask-image: linear-gradient(90deg, transparent 0%, #000 30%); }
 .hero-trend.real .spark { width: 100%; height: 100%; color: var(--trend); }
-.hero-trend.real .spark path:last-child { filter: drop-shadow(0 0 5px var(--trend)); }
+/* stín na celé SVG (Safari neumí CSS filtr na jednotlivé čáře uvnitř SVG – čára by zmizela) */
+.hero-trend.real .spark { filter: drop-shadow(0 0 4px var(--trend)); }
 .hero dl.hero-stats { position: relative; }
 
 /* Mini graf u produktu */
@@ -1518,3 +1519,80 @@ p, .hint, .pm-features p, .pm-lock-card p { text-wrap: pretty; }
 /* Zlaté tlačítko – jen pro Premium */
 .btn.gold { background: var(--gold-grad); color: var(--on-gold); border-color: transparent; box-shadow: 0 8px 22px -10px rgba(255, 181, 71, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.45); }
 .btn.gold:hover { filter: brightness(1.06); }
+
+/* =====================================================================
+   Formulář položky (v2): produkt → nákup → stav
+   ===================================================================== */
+.qform.v2 { display: flex; flex-direction: column; gap: 12px; }
+.qf-games { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg); border: 1px solid var(--border); }
+.qf-games button {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; border: none; border-radius: 10px;
+  background: none; color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s, color 0.2s, transform 0.16s;
+}
+.qf-games button.active { background: var(--surface-3); color: var(--text); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.qf-games button:active { transform: scale(0.96); }
+.game-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; opacity: 0.55; }
+.qf-games button.active .game-dot { opacity: 1; box-shadow: 0 0 10px currentColor; }
+.game-dot.g-pokemon { background: #b08a0c; color: #b08a0c; }
+.game-dot.g-onepiece { background: #d0517a; color: #d0517a; }
+.game-dot.g-riftbound { background: #2b9fd6; color: #2b9fd6; }
+
+.qf-card { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--border); }
+.qf-title { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+
+/* produkt */
+.qf-product { display: flex; align-items: center; gap: 14px; }
+.qf-image { position: relative; flex: none; padding: 0; border: none; background: none; cursor: pointer; border-radius: 16px; }
+.qf-cam {
+  position: absolute; right: -4px; bottom: -4px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface-3); color: var(--text); box-shadow: 0 0 0 3px var(--surface);
+}
+.qf-product-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.qf-name {
+  width: 100%; border: none; background: none; padding: 2px 0; border-bottom: 1px solid transparent; border-radius: 0;
+  font-family: var(--font-display); font-size: 18px; font-weight: 600; letter-spacing: -0.02em; color: var(--text);
+}
+.qf-name { resize: none; overflow: hidden; line-height: 1.25; min-height: 0; }
+.qf-name::placeholder { color: var(--faint); }
+.qf-name:focus { outline: none; border-bottom-color: var(--accent); }
+.qf-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 13px; color: var(--muted); }
+.qf-now { font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; padding: 1px 8px; border-radius: 999px; background: var(--surface-3); font-size: 12px; }
+.qf-manual-toggle {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; padding: 0; border: none; background: none; cursor: pointer;
+  color: var(--accent-2); font-weight: 600; font-size: 13px;
+}
+.qf-manual-toggle svg { width: 14px; height: 14px; transition: transform 0.2s; }
+.qf-manual-toggle.open svg { transform: rotate(90deg); }
+.qf-manual { display: flex; flex-direction: column; gap: 12px; padding-top: 2px; animation: rise 0.25s ease-out; }
+
+/* typ produktu – čitelné štítky */
+.type-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.type-pills button {
+  height: 34px; padding: 0 13px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg);
+  color: var(--muted); font-weight: 600; font-size: 13px; cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.16s;
+}
+.type-pills button:hover { color: var(--text); border-color: var(--border-strong); }
+.type-pills button.active { background: var(--text); color: var(--on-color); border-color: var(--text); }
+.type-pills button:active { transform: scale(0.95); }
+
+/* nákup */
+.qf-buy { display: grid; grid-template-columns: auto 1fr 1fr; gap: 10px; align-items: end; }
+.qf-buy input[type='date'] { height: 46px; }
+@media (max-width: 520px) {
+  .qf-buy { grid-template-columns: auto 1fr; }
+  .qf-buy > :last-child { grid-column: 1 / -1; }
+}
+.qf-total {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; padding: 10px 12px; border-radius: 12px;
+  background: var(--bg); border: 1px solid var(--border); font-size: 13px; color: var(--muted);
+}
+.qf-total em { font-style: normal; }
+.qf-total b { margin-left: auto; font-family: var(--font-display); font-size: 18px; color: var(--text); font-variant-numeric: tabular-nums; }
+.qf-total-now { flex-basis: 100%; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.qf-total-now.pos { color: var(--pos); } .qf-total-now.neg { color: var(--neg); }
+
+/* stav, fotky, poznámka */
+.qform.v2 .photo-strip { margin-top: 2px; }
+.qf-note { width: 100%; min-height: 64px; resize: vertical; }
+.form .field.full { grid-column: 1 / -1; }
+.qform.v2 .sticky-actions { margin-top: 4px; }
