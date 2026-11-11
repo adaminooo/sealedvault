@@ -3,6 +3,7 @@ import { totalStats } from '../lib/calc';
 import { money, pct, signedMoney, tone } from '../lib/format';
 import { TrendIcon } from './icons';
 import { useCountUp } from '../hooks/useCountUp';
+import { Sparkline } from './Sparkline';
 
 import { t } from '../i18n';
 interface Props {
@@ -11,6 +12,8 @@ interface Props {
   filtered?: boolean;
   /** Změna hodnoty za poslední den (z historie cen) */
   dayChange?: { abs: number; pct: number } | null;
+  /** Hodnota portfolia po dnech (posledních 90 dní) */
+  trend?: number[] | null;
 }
 
 /** Dekorativní křivka v pozadí – stoupá při zisku, klesá při ztrátě (jen ozdoba, ne skutečná data) */
@@ -42,13 +45,20 @@ function HeroTrend({ dir }: { dir: 'pos' | 'neg' | 'neutral' }) {
 }
 
 /** Hlavní karta: hodnota portfolia, celkový výnos a souhrnná čísla */
-export function Summary({ items, currency, filtered, dayChange }: Props) {
+export function Summary({ items, currency, filtered, dayChange, trend }: Props) {
   const tot = totalStats(items);
   const tn = tone(tot.profit);
   const shown = useCountUp(tot.value);
   return (
     <section className={`hero glow-${tn}`}>
-      <HeroTrend dir={tn} />
+      {/* skutečný vývoj hodnoty za 90 dní; dokud nejsou data, jen ozdobná křivka */}
+      {trend && !filtered ? (
+        <span className="hero-trend real" title={t('Vývoj hodnoty za 90 dní')}>
+          <Sparkline values={trend} tone={tn} stroke={2} />
+        </span>
+      ) : (
+        <HeroTrend dir={tn} />
+      )}
       <span className="eyebrow">{filtered ? t('Hodnota vybraných položek') : t('Hodnota portfolia')}</span>
       <div className="hero-value">{money(Math.round(shown), currency)}</div>
       <div className="hero-change">

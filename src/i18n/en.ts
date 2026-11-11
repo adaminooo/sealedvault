@@ -536,4 +536,6 @@ export const EN: Record<string, string> = {
   'Cena klesla na {0} (pod {1})': 'Price dropped to {0} (below {1})',
   'Položky': 'Items',
   'Zatím žádná data': 'No data yet',
+  'Vývoj hodnoty za 90 dní': 'Value over the last 90 days',
+  'Cena za 30 dní': 'Price over 30 days',
 };

@@ -33,6 +33,7 @@ import { money, plural } from './lib/format';
 import type { WishlistItem } from './types';
 import { usePremium } from './lib/premium';
 import { usePriceChanges } from './hooks/usePriceChanges';
+import { haptic, withTransition } from './lib/motion';
 import { changeAbs } from './lib/changes';
 import { PremiumDialog } from './components/PremiumDialog';
 import { PortfolioSwitcher } from './components/PortfolioSwitcher';
@@ -77,7 +78,16 @@ export default function App() {
   const [filters, setFilters] = usePersistentState<Filters>('filters', DEFAULT_FILTERS);
   const [lastGame, setLastGame] = usePersistentState<Game>('lastGame', 'Pokémon');
   const [view, setView] = usePersistentState<ListView>('view', 'list');
-  const [tab, setTab] = usePersistentState<Tab>('tab', 'portfolio');
+  const [tab, setTabRaw] = usePersistentState<Tab>('tab', 'portfolio');
+  // přepnutí záložky s plynulým přechodem a jemnou vibrací
+  const setTab = useCallback(
+    (next: Tab) => {
+      haptic();
+      withTransition(() => setTabRaw(next));
+      window.scrollTo({ top: 0 });
+    },
+    [setTabRaw],
+  );
   const [formKey, setFormKey] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const close = useCallback(() => setDialog(null), []);
@@ -100,6 +110,7 @@ export default function App() {
 
   const toastTimer = useRef<number | undefined>(undefined);
   function showToast(text: string) {
+    haptic(6);
     setToast(text);
     window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setToast(null), 2200);
@@ -276,7 +287,7 @@ export default function App() {
 
   const visible = useMemo(() => applyFilters(pItems, filters, seriesOf), [pItems, filters, seriesOf]);
   // denní / týdenní změna cen (z historie)
-  const changes = usePriceChanges(pItems);
+  const { changes, spark, trend } = usePriceChanges(pItems);
   const dayChangeOf = useCallback(
     (p: Position) => (p.stats.held && p.head.cmProductId ? changeAbs(p.stats.value, changes.get(p.head.cmProductId)?.d1 ?? null) : null),
     [changes],
@@ -414,7 +425,7 @@ export default function App() {
               <input
                 ref={searchRef}
                 type="search"
-                placeholder={t('Hledat v portfoliu…')}
+                placeholder={t('Hledat…')}
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               />
@@ -513,7 +524,7 @@ export default function App() {
         <main className="layout">
           {switcher}
           <aside className="col-left">
-            <Summary items={visible} currency={currency} filtered={filtered} dayChange={dayChange} />
+            <Summary items={visible} currency={currency} filtered={filtered} dayChange={dayChange} trend={trend} />
             <MarketBar
               market={market}
               loading={marketLoading}
@@ -547,7 +558,7 @@ export default function App() {
                     : t('Filtrům neodpovídá žádná položka.')}
               </p>
             ) : (
-              <ItemList positions={positions} currency={currency} view={view} changes={changes} onOpen={(p) => setDialog({ kind: 'position', key: p.key })} />
+              <ItemList positions={positions} currency={currency} view={view} changes={changes} spark={spark} onOpen={(p) => setDialog({ kind: 'position', key: p.key })} />
             )}
           </section>
         </main>
@@ -563,31 +574,45 @@ export default function App() {
         </footer>
       )}
 
-      <button className="fab" onClick={() => setDialog({ kind: 'add' })} aria-label={t('Přidat položku')}>
-        <PlusIcon />
-      </button>
+      {items.length === 0 && (
+        <button className="fab" onClick={() => setDialog({ kind: 'add' })} aria-label={t('Přidat položku')}>
+          <PlusIcon />
+        </button>
+      )}
 
       {items.length > 0 && (
+        <div className="dock">
         <nav className="bottom-nav" aria-label={t('Sekce')}>
           <button className={tab === 'portfolio' ? 'active' : ''} onClick={() => setTab('portfolio')}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M21 8 12 3 3 8l9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8" />
             </svg>
-            {t('Portfolio')}
+            <span>{t('Portfolio')}</span>
           </button>
           <button className={tab === 'analytics' ? 'active' : ''} onClick={() => setTab('analytics')}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M3 3v18h18M7 15l4-4 3 3 6-7" />
             </svg>
-            {t('Analýza')}
+            <span>{t('Analýza')}</span>
           </button>
           <button className={tab === 'wishlist' ? 'active' : ''} onClick={() => setTab('wishlist')}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z" />
             </svg>
-            {t('Wishlist')}
+            <span>{t('Wishlist')}</span>
           </button>
         </nav>
+        <button
+          className="dock-add"
+          onClick={() => {
+            haptic();
+            setDialog({ kind: 'add' });
+          }}
+          aria-label={t('Přidat položku')}
+        >
+          <PlusIcon />
+        </button>
+        </div>
       )}
 
       {dialog?.kind === 'share' && (

@@ -6,6 +6,7 @@ import type { Position } from '../lib/portfolio';
 import type { PriceChange } from '../lib/changes';
 import { ProductImage } from './ProductImage';
 import { TrendIcon } from './icons';
+import { Sparkline } from './Sparkline';
 
 import { t } from '../i18n';
 export type ListView = 'list' | 'grid';
@@ -16,6 +17,8 @@ interface Props {
   view: ListView;
   onOpen: (p: Position) => void;
   changes?: Map<number, PriceChange>;
+  /** průběh ceny za 30 dní (id produktu → ceny) */
+  spark?: Map<number, number[]>;
 }
 
 /** Změna ceny za den (a týden v nápovědě) – malý ukazatel u produktu */
@@ -70,7 +73,7 @@ function PositionMeta({ p }: { p: Position }) {
   );
 }
 
-export function ItemList({ positions, currency, view, onOpen, changes }: Props) {
+export function ItemList({ positions, currency, view, onOpen, changes, spark }: Props) {
   const chg = (p: Position) => (p.stats.held && p.head.cmProductId ? changes?.get(p.head.cmProductId) : undefined);
   // Loga pro starší položky bez uloženého loga – dohledá je podle názvu edice
   const pokemonSets = useSetCatalog('Pokémon');
@@ -153,18 +156,24 @@ export function ItemList({ positions, currency, view, onOpen, changes }: Props) 
                 </span>
                 <PositionMeta p={p} />
               </span>
+              {/* průběh ceny za 30 dní */}
+              {!soldOut && h.cmProductId && spark?.get(h.cmProductId) ? (
+                <span className="row-spark" title={t('Cena za 30 dní')}>
+                  <Sparkline values={spark.get(h.cmProductId)!} area={false} />
+                </span>
+              ) : null}
               <span className="row-side">
                 <span className="row-value">{money(soldOut ? s.proceeds : s.value, currency)}</span>
+                <span className={`row-delta ${tn}`}>
+                  <TrendIcon dir={tn} />
+                  {signedMoney(soldOut ? s.realized : s.profit, currency)}
+                  <em>{soldOut ? t('prodáno') : pct(s.profitPct)}</em>
+                </span>
                 {s.held > 1 && (
                   <span className="unit-line">
                     {s.held} {t('×')} {money(h.currentPrice, currency)}
                   </span>
                 )}
-                <span className={`pill sm ${tn}`}>
-                  <TrendIcon dir={tn} />
-                  {soldOut ? t('Prodáno') : pct(s.profitPct)}
-                </span>
-                <span className={`row-profit ${tn}`}>{signedMoney(soldOut ? s.realized : s.profit, currency)}</span>
               </span>
             </button>
           </li>
