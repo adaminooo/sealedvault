@@ -66,7 +66,7 @@ export function Dock({ tab: appTab, wishCount, onTab, onAdd }: Props) {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 <path d={x.icon} />
               </svg>
-              {x.id === 'wishlist' && wishCount > 0 && <i className="nav-badge">{wishCount}</i>}
+              {x.id === 'wishlist' && wishCount > 0 && <i className={`nav-badge ${wishCount > 9 ? 'wide' : ''}`}>{wishCount}</i>}
             </span>
             <span className="nav-label">{t(x.label)}</span>
           </button>

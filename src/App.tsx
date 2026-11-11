@@ -436,7 +436,7 @@ export default function App() {
               <button className={tab === 'portfolio' ? 'active' : ''} onClick={() => setTab('portfolio')}>{t('Portfolio')}</button>
               <button className={tab === 'analytics' ? 'active' : ''} onClick={() => setTab('analytics')}>{t('Analýza')}</button>
               <button className={tab === 'wishlist' ? 'active' : ''} onClick={() => setTab('wishlist')}>
-                {t('Wishlist')}{wishlist.length > 0 && <span className="tab-count">{wishlist.length}</span>}
+                {t('Wishlist')}{wishlist.length > 0 && <span className={`tab-count ${wishlist.length > 9 ? 'wide' : ''}`}>{wishlist.length}</span>}
               </button>
             </nav>
           )}
