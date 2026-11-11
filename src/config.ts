@@ -1,7 +1,7 @@
 /** Základní údaje o aplikaci – na jednom místě */
 export const APP_NAME = 'SealedVault';
 export const APP_FULL_NAME = 'SealedVault TCG';
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.2.0';
 
 /** Adresa podpory (zobrazí se v Nastavení → Podpora) */
 export const SUPPORT_EMAIL = 'sealedvault.support@gmail.com';
