@@ -96,10 +96,6 @@ export const ItemList = memo(function ItemList({ positions, currency, view, onOp
               <button className={`gcard ${soldOut ? 'sold' : ''}`} onClick={() => onOpen(p)}>
                 <span className="gcard-media">
                   <ProductImage game={h.game} type={h.type} image={h.image} productImage={h.productImage} setLogo={logoOf(h)} size="xl" />
-                  <span className={`pill sm ${tn} gcard-pill`}>
-                    <TrendIcon dir={tn} />
-                    {soldOut ? t('Prodáno') : pct(s.profitPct)}
-                  </span>
                   <span className="gcard-qty">
                     <QtyBadge q={s.held} />
                   </span>
@@ -114,8 +110,12 @@ export const ItemList = memo(function ItemList({ positions, currency, view, onOp
                   <DayChange c={chg(p)} />
                   <span className="gcard-foot">
                     <span className="row-value">{money(soldOut ? s.proceeds : s.value, currency)}</span>
-                    <span className={`row-profit ${tn}`}>{signedMoney(soldOut ? s.realized : s.profit, currency)}</span>
+                    <span className={`row-delta ${tn}`}>
+                      <TrendIcon dir={tn} />
+                      {soldOut ? t('prodáno') : pct(s.profitPct)}
+                    </span>
                   </span>
+                  <span className={`gcard-profit ${tn}`}>{signedMoney(soldOut ? s.realized : s.profit, currency)}</span>
                   {s.held > 1 && (
                     <span className="unit-line">
                       {s.held} {t('×')} {money(h.currentPrice, currency)}

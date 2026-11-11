@@ -1690,3 +1690,44 @@ p, .hint, .pm-features p, .pm-lock-card p { text-wrap: pretty; }
   font-size: 9.5px; font-weight: 700; line-height: 15px; letter-spacing: 0;
   background: #8f6bff; box-shadow: none;
 }
+/* =====================================================================
+   Mřížka produktů v2: rámeček obrázku stejného tvaru, jednotný štítek kusů, zisk dole
+   ===================================================================== */
+.grid-cards { align-items: stretch; }
+.gcard { padding: 8px; gap: 0; }
+.gcard-media {
+  position: relative; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden;
+  background: #fff; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+/* obrázek vždy celý uvnitř rámečku – karty mají stejnou výšku */
+.gcard-media > * { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; }
+.gcard-media .avatar.xl { border-radius: 0; background: transparent; }
+.gcard-media .avatar.xl.product { padding: 10px; background: #fff; }
+.gcard-media .avatar.xl img { object-fit: contain; }
+.gcard-media .avatar:not(.product) { background: var(--surface-2); }
+/* štítek počtu kusů: jednotný, tmavé sklo */
+.gcard-media .gcard-qty { position: absolute !important; inset: auto 8px auto auto !important; top: 8px !important; width: auto !important; height: auto !important; }
+.gcard-qty .qty-badge,
+.gcard-qty .qty-badge:not(.multi),
+.gcard-qty .qty-badge.multi {
+  height: 22px; min-width: 28px; padding: 0 7px; font-size: 12px; border: none;
+  background: rgba(20, 20, 28, 0.72); color: #fff; box-shadow: none;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.gcard-body { padding: 10px 4px 2px; gap: 3px; }
+.gcard-foot { padding-top: 8px; align-items: center; }
+.gcard-foot .row-value { font-size: 16px; }
+.gcard-profit { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.gcard-profit.pos { color: var(--pos); } .gcard-profit.neg { color: var(--neg); } .gcard-profit.neutral { color: var(--muted); }
+.gcard .unit-line { margin-top: 1px; }
+/* počet u Wishlistu v hlavičce (PC) – stejné kolečko jako na mobilu, číslo přesně uprostřed */
+.main-tabs button { display: inline-flex; align-items: center; }
+.tab-count {
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  min-width: 17px; height: 17px; padding: 0 5px; margin-left: 7px; border-radius: 999px;
+  background: #8f6bff; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums;
+  font-family: 'Inter Variable', system-ui, sans-serif;
+}/* úzké karty (2 sloupce na mobilu): hodnota a procenta vždy pod sebou */
+@media (max-width: 719px) {
+  .gcard-foot { flex-direction: column; align-items: flex-start; gap: 2px; }
+}
