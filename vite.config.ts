@@ -8,6 +8,9 @@ const base = process.env.BASE_PATH ?? '/';
 
 export default defineConfig({
   base,
+  // Lightning CSS při minifikaci zahazoval standardní backdrop-filter (zůstal jen -webkit-) → v Chromu nefungovalo rozmazání
+  // (CSS se proto nezmenšuje – po gzipu ~18 kB, rozdíl zanedbatelný)
+  build: { cssMinify: false },
   plugins: [
     react(),
     VitePWA({

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMarket } from './hooks/useMarket';
 import { autoPriceFor, bestMatch, inferType, productImageFor, type Valuation } from './lib/market';
 import { useAltQuotes } from './hooks/useAltQuotes';
@@ -33,7 +33,8 @@ import { money, plural } from './lib/format';
 import type { WishlistItem } from './types';
 import { usePremium } from './lib/premium';
 import { usePriceChanges } from './hooks/usePriceChanges';
-import { haptic, withTransition } from './lib/motion';
+import { haptic } from './lib/motion';
+import { Dock } from './components/Dock';
 import { changeAbs } from './lib/changes';
 import { PremiumDialog } from './components/PremiumDialog';
 import { PortfolioSwitcher } from './components/PortfolioSwitcher';
@@ -51,7 +52,7 @@ type Dialog =
   | { kind: 'sell'; key: string }
   | { kind: 'share' }
   | null;
-type Tab = 'portfolio' | 'analytics' | 'wishlist';
+import type { Tab } from './components/Dock';
 
 /** Kostra obsahu během načítání */
 function SkeletonLayout() {
@@ -83,14 +84,35 @@ export default function App() {
   const setTab = useCallback(
     (next: Tab) => {
       haptic();
-      withTransition(() => setTabRaw(next));
       window.scrollTo({ top: 0 });
+      // obsah se přepne s nízkou prioritou – ovládání reaguje okamžitě
+      startTransition(() => setTabRaw(next));
     },
     [setTabRaw],
   );
+  const shownTab = tab;
+  // jednou otevřené záložky zůstávají vykreslené (skryté) – další přepnutí je okamžité
+  const [visited, setVisited] = useState<Set<Tab>>(() => new Set([tab]));
+  useEffect(() => {
+    setVisited((v) => (v.has(shownTab) ? v : new Set(v).add(shownTab)));
+  }, [shownTab]);
+  // ostatní záložky připravit v klidu po startu – první přepnutí pak nečeká na výpočty
+  useEffect(() => {
+    const idle = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
+    const run = () => startTransition(() => setVisited(new Set<Tab>(['portfolio', 'analytics', 'wishlist'])));
+    const id = idle ? idle(run, { timeout: 2500 }) : window.setTimeout(run, 1800);
+    return () => {
+      const cancel = (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback;
+      if (cancel) cancel(id);
+      clearTimeout(id);
+    };
+  }, []);
   const [formKey, setFormKey] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const close = useCallback(() => setDialog(null), []);
+  // stabilní funkce pro děti (memo komponenty se pak zbytečně nepřekreslují)
+  const openPosition = useCallback((key: string) => setDialog({ kind: 'position', key }), []);
+  const openPositionOf = useCallback((p: { key: string }) => setDialog({ kind: 'position', key: p.key }), []);
 
   // Ctrl+K nebo „/“ → hledání v hlavičce (PC)
   const searchRef = useRef<HTMLInputElement>(null);
@@ -494,8 +516,10 @@ export default function App() {
             <button className="btn" onClick={() => setDialog({ kind: 'settings' })}>{t('Importovat zálohu')}</button>
           </div>
         </main>
-      ) : tab === 'wishlist' ? (
-        <main className="layout wide">
+      ) : (
+        <>
+        {visited.has('wishlist') && (
+        <main className="layout wide tab-pane" hidden={shownTab !== 'wishlist'}>
           <WishlistView
             wishlist={wishlist}
             market={market}
@@ -515,13 +539,15 @@ export default function App() {
             }
           />
         </main>
-      ) : tab === 'analytics' ? (
-        <main className="layout wide">
+        )}
+        {visited.has('analytics') && (
+        <main className="layout wide tab-pane" hidden={shownTab !== 'analytics'}>
           {switcher}
-          <AnalyticsView items={pItems} currency={currency} market={market} seriesOf={seriesOf} onOpen={(key) => setDialog({ kind: 'position', key })} />
+          <AnalyticsView items={pItems} currency={currency} market={market} seriesOf={seriesOf} onOpen={openPosition} />
         </main>
-      ) : (
-        <main className="layout">
+        )}
+        {visited.has('portfolio') && (
+        <main className="layout tab-pane" hidden={shownTab !== 'portfolio'}>
           {switcher}
           <aside className="col-left">
             <Summary items={visible} currency={currency} filtered={filtered} dayChange={dayChange} trend={trend} />
@@ -558,10 +584,12 @@ export default function App() {
                     : t('Filtrům neodpovídá žádná položka.')}
               </p>
             ) : (
-              <ItemList positions={positions} currency={currency} view={view} changes={changes} spark={spark} onOpen={(p) => setDialog({ kind: 'position', key: p.key })} />
+              <ItemList positions={positions} currency={currency} view={view} changes={changes} spark={spark} onOpen={openPositionOf} />
             )}
           </section>
         </main>
+        )}
+        </>
       )}
 
       {!loading && (
@@ -581,38 +609,15 @@ export default function App() {
       )}
 
       {items.length > 0 && (
-        <div className="dock">
-        <nav className="bottom-nav" aria-label={t('Sekce')}>
-          <button className={tab === 'portfolio' ? 'active' : ''} onClick={() => setTab('portfolio')}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M21 8 12 3 3 8l9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8" />
-            </svg>
-            <span>{t('Portfolio')}</span>
-          </button>
-          <button className={tab === 'analytics' ? 'active' : ''} onClick={() => setTab('analytics')}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M3 3v18h18M7 15l4-4 3 3 6-7" />
-            </svg>
-            <span>{t('Analýza')}</span>
-          </button>
-          <button className={tab === 'wishlist' ? 'active' : ''} onClick={() => setTab('wishlist')}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z" />
-            </svg>
-            <span>{t('Wishlist')}</span>
-          </button>
-        </nav>
-        <button
-          className="dock-add"
-          onClick={() => {
+        <Dock
+          tab={tab}
+          wishCount={wishlist.length}
+          onTab={setTab}
+          onAdd={() => {
             haptic();
             setDialog({ kind: 'add' });
           }}
-          aria-label={t('Přidat položku')}
-        >
-          <PlusIcon />
-        </button>
-        </div>
+        />
       )}
 
       {dialog?.kind === 'share' && (

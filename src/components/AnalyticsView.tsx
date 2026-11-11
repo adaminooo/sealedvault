@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import type { Currency, PortfolioItem } from '../types';
 import { heldQty, totalStats, unitCost } from '../lib/calc';
 import { fetchHistory } from '../lib/history';
@@ -38,7 +38,7 @@ const ts = (d: string) => new Date(d + 'T12:00:00Z').getTime();
 const monthFmt = new Intl.DateTimeFormat(LOCALE, { month: 'long', year: 'numeric' });
 const recFmt = new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'numeric', year: 'numeric' });
 
-export function AnalyticsView({ items, currency, market, onOpen, seriesOf }: Props) {
+export const AnalyticsView = memo(function AnalyticsView({ items, currency, market, onOpen, seriesOf }: Props) {
   const tot = totalStats(items);
   const [hist, setHist] = useState<HistoryData | null>(null);
   const [histErr, setHistErr] = useState(false);
@@ -304,4 +304,4 @@ export function AnalyticsView({ items, currency, market, onOpen, seriesOf }: Pro
       </section>
     </div>
   );
-}
+});

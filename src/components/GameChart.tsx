@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { GAMES, type Currency, type Game, type PortfolioItem } from '../types';
 import { totalStats } from '../lib/calc';
 import { money, pct, signedMoney, tone } from '../lib/format';
@@ -21,7 +21,7 @@ const C = 2 * Math.PI * R;
 const GAP = 1.6; // mezera mezi segmenty (v jednotkách obvodu)
 
 /** Rozložení portfolia podle hry – prstencový graf + legenda */
-export function GameChart({ items, currency }: Props) {
+export const GameChart = memo(function GameChart({ items, currency }: Props) {
   const [hover, setHover] = useState<Game | null>(null);
   const [metric, setMetric] = useState<'value' | 'cost'>('value');
 
@@ -106,4 +106,4 @@ export function GameChart({ items, currency }: Props) {
       </div>
     </section>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { Currency, PortfolioItem } from '../types';
 import { totalStats } from '../lib/calc';
 import { money, pct, signedMoney, tone } from '../lib/format';
@@ -17,7 +18,7 @@ interface Props {
 }
 
 /** Hlavní karta: hodnota portfolia, celkový výnos a souhrnná čísla */
-export function Summary({ items, currency, filtered, dayChange, trend }: Props) {
+export const Summary = memo(function Summary({ items, currency, filtered, dayChange, trend }: Props) {
   const tot = totalStats(items);
   const tn = tone(tot.profit);
   const shown = useCountUp(tot.value);
@@ -62,4 +63,4 @@ export function Summary({ items, currency, filtered, dayChange, trend }: Props) 
       </dl>
     </section>
   );
-}
+});

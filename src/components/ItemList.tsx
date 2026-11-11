@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { conditionTone, type Currency, type PortfolioItem } from '../types';
 import { useSetCatalog } from '../hooks/useSetCatalog';
 import { money, pct, signedMoney, tone } from '../lib/format';
@@ -73,7 +73,7 @@ function PositionMeta({ p }: { p: Position }) {
   );
 }
 
-export function ItemList({ positions, currency, view, onOpen, changes, spark }: Props) {
+export const ItemList = memo(function ItemList({ positions, currency, view, onOpen, changes, spark }: Props) {
   const chg = (p: Position) => (p.stats.held && p.head.cmProductId ? changes?.get(p.head.cmProductId) : undefined);
   // Loga pro starší položky bez uloženého loga – dohledá je podle názvu edice
   const pokemonSets = useSetCatalog('Pokémon');
@@ -181,4 +181,4 @@ export function ItemList({ positions, currency, view, onOpen, changes, spark }: 
       })}
     </ul>
   );
-}
+});
