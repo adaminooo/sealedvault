@@ -287,7 +287,7 @@ export default function App() {
 
   const visible = useMemo(() => applyFilters(pItems, filters, seriesOf), [pItems, filters, seriesOf]);
   // denní / týdenní změna cen (z historie)
-  const { changes, spark, trend } = usePriceChanges(pItems);
+  const { changes, spark, trend } = usePriceChanges(pItems, visible);
   const dayChangeOf = useCallback(
     (p: Position) => (p.stats.held && p.head.cmProductId ? changeAbs(p.stats.value, changes.get(p.head.cmProductId)?.d1 ?? null) : null),
     [changes],

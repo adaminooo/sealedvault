@@ -14,7 +14,7 @@ const today = () => new Date().toISOString().slice(0, 10);
  *  - spark: průběh ceny za 30 dní pro mini graf u produktu (id → ceny)
  *  - trend: hodnota portfolia za 90 dní pro křivku na hlavní kartě
  */
-export function usePriceChanges(items: PortfolioItem[]) {
+export function usePriceChanges(items: PortfolioItem[], trendItems: PortfolioItem[] = items) {
   const [hist, setHist] = useState<HistoryData | null>(null);
   const ids = useMemo(
     () => [...new Set(items.map((i) => i.cmProductId).filter((x): x is number => !!x))].sort((a, b) => a - b).join(','),
@@ -45,9 +45,9 @@ export function usePriceChanges(items: PortfolioItem[]) {
 
   // hodnota portfolia po dnech (jen dny, kdy už byly nákupy) – pro křivku na hlavní kartě
   const trend = useMemo(() => {
-    if (!hist) return null;
+    if (!hist || !trendItems.length) return null;
     const from = isoDaysAgo(90);
-    const pts = portfolioSeries(items, hist, today()).filter((p) => p.date >= from && p.value != null);
+    const pts = portfolioSeries(trendItems, hist, today()).filter((p) => p.date >= from && p.value != null);
     if (pts.length < 5) return null;
     // vyhladit: průměr po ~3 dnech (čistší křivka bez schodů z týdenních dat)
     const vals = pts.map((p) => p.value as number);
@@ -59,7 +59,7 @@ export function usePriceChanges(items: PortfolioItem[]) {
     }
     out[out.length - 1] = vals[vals.length - 1];
     return out;
-  }, [hist, items]);
+  }, [hist, trendItems]);
 
   return { changes, spark, trend };
 }

@@ -51,7 +51,7 @@ function PremiumSection() {
                 : t('Vyzkoušej Premium {0} dní zdarma, bez karty.', TRIAL_DAYS)}
           </span>
         </div>
-        <button className="btn sm primary" onClick={() => openPaywall()}>
+        <button className="btn sm gold" onClick={() => openPaywall()}>
           {isPremium ? t('Detail') : trialUsed ? t('Premium') : t('Vyzkoušet')}
         </button>
       </div>
