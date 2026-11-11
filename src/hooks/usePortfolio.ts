@@ -16,6 +16,10 @@ export function usePortfolio(repo: PortfolioRepository) {
       .then(setItems)
       .catch((e) => setError(String(e)))
       .finally(() => setLoading(false));
+    // změny z jiného zařízení (synchronizace) → načíst znovu
+    const reload = () => void repo.getAll().then(setItems).catch(() => {});
+    window.addEventListener('sv:data-changed', reload);
+    return () => window.removeEventListener('sv:data-changed', reload);
   }, [repo]);
 
   const add = useCallback(

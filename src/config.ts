@@ -12,6 +12,13 @@ export const SUPPORT_EMAIL = 'sealedvault.support@gmail.com';
  */
 export const PUBLIC_URL = 'https://adaminooo.github.io/sealedvault/';
 
+/**
+ * Účty a synchronizace (Supabase). Oba údaje jsou veřejné – určené pro prohlížeč;
+ * data chrání pravidla v databázi (supabase/schema.sql). Prázdné = appka funguje jen lokálně.
+ */
+export const SUPABASE_URL = '';
+export const SUPABASE_ANON_KEY = '';
+
 /** Orientační ceny Premium (Kč) – platby zatím nejsou spuštěné */
 export const PREMIUM_PRICE = { monthly: 79, yearly: 690 };
 

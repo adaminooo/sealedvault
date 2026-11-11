@@ -9,7 +9,10 @@ export function useWishlist() {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
 
   useEffect(() => {
-    repo.getAll().then(setWishlist).catch(() => {});
+    const load = () => void repo.getAll().then(setWishlist).catch(() => {});
+    load();
+    window.addEventListener('sv:data-changed', load);
+    return () => window.removeEventListener('sv:data-changed', load);
   }, []);
 
   const addWish = useCallback(async (w: Omit<WishlistItem, 'id' | 'createdAt'>) => {

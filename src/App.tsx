@@ -35,6 +35,8 @@ import { usePremium } from './lib/premium';
 import { usePriceChanges } from './hooks/usePriceChanges';
 import { haptic } from './lib/motion';
 import { Dock, HeaderTabs } from './components/Dock';
+import { AccountButton, AuthForm, RecoveryForm } from './components/Account';
+import { useCloud } from './lib/cloud';
 import { changeAbs } from './lib/changes';
 import { PremiumDialog } from './components/PremiumDialog';
 import { PortfolioSwitcher } from './components/PortfolioSwitcher';
@@ -51,6 +53,7 @@ type Dialog =
   | { kind: 'position'; key: string }
   | { kind: 'sell'; key: string }
   | { kind: 'share' }
+  | { kind: 'auth' }
   | null;
 import type { Tab } from './components/Dock';
 
@@ -110,6 +113,7 @@ export default function App() {
   const [formKey, setFormKey] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const close = useCallback(() => setDialog(null), []);
+  const cloud = useCloud();
   // stabilní funkce pro děti (memo komponenty se pak zbytečně nepřekreslují)
   const openPosition = useCallback((key: string) => setDialog({ kind: 'position', key }), []);
   const openPositionOf = useCallback((p: { key: string }) => setDialog({ kind: 'position', key: p.key }), []);
@@ -477,6 +481,7 @@ export default function App() {
                 <ShareIcon size={18} />
               </button>
             )}
+            <AccountButton onOpen={() => setDialog(cloud.user ? { kind: 'settings' } : { kind: 'auth' })} />
             <button className="icon-btn" onClick={() => setDialog({ kind: 'settings' })} aria-label={t('Nastavení')} title={t('Nastavení, záloha a podpora')}>
               <GearIcon />
             </button>
@@ -739,7 +744,20 @@ export default function App() {
             counts={pfCounts}
             onRenamePortfolio={renamePortfolio}
             onDeletePortfolio={deletePortfolio}
+            onLogin={() => setDialog({ kind: 'auth' })}
           />
+        </Modal>
+      )}
+
+      {dialog?.kind === 'auth' && (
+        <Modal title={t('Účet SealedVault')} onClose={close}>
+          <AuthForm onDone={() => { close(); showToast(t('Přihlášeno – synchronizuji data')); }} />
+        </Modal>
+      )}
+
+      {cloud.recovery && (
+        <Modal title={t('Nové heslo')} onClose={() => void 0}>
+          <RecoveryForm onDone={() => showToast(t('Heslo změněno'))} />
         </Modal>
       )}
 

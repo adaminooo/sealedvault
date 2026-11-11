@@ -4,6 +4,7 @@ import { enableNotifications, notificationsSupported } from '../lib/alerts';
 import { SOURCE_LABEL, type MarketSnapshot, type Valuation } from '../lib/market';
 import { APP_FULL_NAME, APP_VERSION, SUPPORT_EMAIL, diagnostics, mailtoUrl } from '../config';
 import { DataPanel } from './DataPanel';
+import { AccountSection } from './Account';
 import { plural } from '../lib/format';
 import { CrownIcon, Logo } from './icons';
 import { TRIAL_DAYS, usePremium } from '../lib/premium';
@@ -29,6 +30,7 @@ interface Props {
   counts: Record<string, number>;
   onRenamePortfolio: (id: string, name: string) => void;
   onDeletePortfolio: (id: string) => void;
+  onLogin: () => void;
 }
 
 /** Stav Premium + přepnutí do verze zdarma */
@@ -152,6 +154,8 @@ export function SettingsPanel(p: Props) {
 
   return (
     <div className="settings">
+      <AccountSection onLogin={p.onLogin} />
+
       <PremiumSection />
 
       {/* Měna */}

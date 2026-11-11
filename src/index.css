@@ -1801,3 +1801,30 @@ svg[stroke="currentColor"], svg.icon {
 .h-icon { display: inline-flex; align-items: center; gap: 7px; }
 .h-icon > svg { color: var(--accent-2); }
 .h-icon.pos > svg { color: var(--pos); } .h-icon.neg > svg { color: var(--neg); } .h-icon.gold > svg { color: var(--gold); }
+/* =====================================================================
+   Účet a synchronizace
+   ===================================================================== */
+.account-btn { position: relative; }
+.account-btn.on { border-color: rgba(143, 107, 255, 0.45); }
+.account-initial {
+  width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--grad); color: #fff; font: 700 12px/1 'Inter Variable', system-ui, sans-serif;
+}
+.sync-dot {
+  position: absolute; right: 5px; bottom: 5px; width: 9px; height: 9px; border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+.sync-dot.ok { background: var(--pos); }
+.sync-dot.busy { background: var(--accent); animation: pulse-dot 1s ease-in-out infinite; }
+.sync-dot.err { background: var(--neg); }
+@keyframes pulse-dot { 50% { opacity: 0.35; } }
+.spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.auth-form { display: flex; flex-direction: column; gap: 14px; }
+.auth-form .hint { margin: 0; }
+.auth-tabs { display: flex; }
+.auth-tabs button { flex: 1; padding: 9px 12px; font-size: 14px; }
+.auth-submit { width: 100%; justify-content: center; padding: 13px; font-size: 15px; }
+.auth-link { align-self: center; }
+.set-row span.neg { color: var(--neg); }
