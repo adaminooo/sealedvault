@@ -1679,6 +1679,6 @@ p, .hint, .pm-features p, .pm-lock-card p { text-wrap: pretty; }
   top: -7px; right: -12px; left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
   background: var(--accent); color: #fff; font-size: 10.5px; font-weight: 700; line-height: 18px; font-variant-numeric: tabular-nums;
   display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
-  box-shadow: 0 0 0 2px rgba(18, 18, 28, 0.95), 0 2px 6px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px -2px rgba(109, 92, 255, 0.7);
   max-width: none; overflow: visible; opacity: 1; margin: 0;
 }
