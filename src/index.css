@@ -1753,3 +1753,38 @@ p, .hint, .pm-features p, .pm-lock-card p { text-wrap: pretty; }
 .tab-count:not(.wide), .dock .bottom-nav .nav-badge:not(.wide) { padding: 0; }
 .tab-count:not(.wide) { width: 18px; }
 .dock .bottom-nav .nav-badge:not(.wide) { width: 16px; }
+/* =====================================================================
+   Záložky v hlavičce (PC) – stejný styl jako lišta na mobilu
+   ===================================================================== */
+@media (min-width: 960px) {
+  .main-tabs.glass { position: relative; display: flex; gap: 2px; padding: 4px; border-radius: 999px; isolation: isolate; }
+  .main-tabs.glass button {
+    position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px 0 13px;
+    border: none; border-radius: 999px; background: none !important; box-shadow: none !important; cursor: pointer;
+    color: rgba(235, 235, 245, 0.62); font-weight: 600; font-size: 14px; transition: color 0.25s, transform 0.16s;
+  }
+  .main-tabs.glass button:hover { color: var(--text); }
+  .main-tabs.glass button.active { color: #fff; }
+  .main-tabs.glass button:active { transform: scale(0.95); }
+  .main-tabs.glass button:focus:not(:focus-visible) { outline: none; }
+  .main-tabs.glass .nav-icon { position: relative; display: grid; place-items: center; }
+  .main-tabs.glass .nav-icon svg { width: 17px; height: 17px; }
+  .main-tabs.glass button.active .nav-icon svg path { fill: currentColor; fill-opacity: 0.22; }
+  .main-tabs.glass .nav-indicator { top: 4px; height: 36px; }
+  /* odznak na rohu ikony – stejně jako na mobilu */
+  .main-tabs.glass .nav-badge {
+    position: absolute; top: -6px; right: -9px; min-width: 15px; height: 15px; padding: 0;
+    display: inline-grid; place-items: center; box-sizing: border-box; border-radius: 999px;
+    background: #8f6bff; color: #fff; font: 700 9.5px/1 'Inter Variable', system-ui, sans-serif;
+    font-variant-numeric: proportional-nums; font-style: normal; letter-spacing: 0;
+  }
+  .main-tabs.glass .nav-badge:not(.wide) { width: 15px; }
+  .main-tabs.glass .nav-badge.wide { padding: 0 4px; }
+}/* užší monitory: vyhledávání nesmí zmizet – pilulka s cenami jen jako tečka */
+@media (min-width: 960px) {
+  .header-search { min-width: 170px; }
+}
+@media (min-width: 960px) and (max-width: 1360px) {
+  .market-pill { font-size: 0; gap: 0; width: 40px; padding: 0; justify-content: center; }
+  .topbar-inner { gap: 16px; }
+}

@@ -34,7 +34,7 @@ import type { WishlistItem } from './types';
 import { usePremium } from './lib/premium';
 import { usePriceChanges } from './hooks/usePriceChanges';
 import { haptic } from './lib/motion';
-import { Dock } from './components/Dock';
+import { Dock, HeaderTabs } from './components/Dock';
 import { changeAbs } from './lib/changes';
 import { PremiumDialog } from './components/PremiumDialog';
 import { PortfolioSwitcher } from './components/PortfolioSwitcher';
@@ -432,13 +432,7 @@ export default function App() {
           </div>
 
           {items.length > 0 && (
-            <nav className="main-tabs" aria-label={t('Sekce')}>
-              <button className={tab === 'portfolio' ? 'active' : ''} onClick={() => setTab('portfolio')}>{t('Portfolio')}</button>
-              <button className={tab === 'analytics' ? 'active' : ''} onClick={() => setTab('analytics')}>{t('Analýza')}</button>
-              <button className={tab === 'wishlist' ? 'active' : ''} onClick={() => setTab('wishlist')}>
-                {t('Wishlist')}{wishlist.length > 0 && <span className={`tab-count ${wishlist.length > 9 ? 'wide' : ''}`}>{wishlist.length}</span>}
-              </button>
-            </nav>
+            <HeaderTabs tab={tab} wishCount={wishlist.length} onTab={setTab} />
           )}
 
           {items.length > 0 && tab === 'portfolio' && (

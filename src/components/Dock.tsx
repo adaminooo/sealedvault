@@ -21,6 +21,46 @@ interface Props {
   onAdd: () => void;
 }
 
+/** Záložky v hlavičce na PC – stejný styl jako lišta na mobilu (sklo, klouzavé zvýraznění, odznak na ikoně) */
+export function HeaderTabs({ tab: appTab, wishCount, onTab }: Omit<Props, 'onAdd'>) {
+  const navRef = useRef<HTMLElement>(null);
+  const [tab, setTab] = useState(appTab);
+  useEffect(() => setTab(appTab), [appTab]);
+  const [ind, setInd] = useState<{ x: number; w: number } | null>(null);
+  useLayoutEffect(() => {
+    const place = () => {
+      const btn = navRef.current?.querySelector<HTMLButtonElement>(`[data-tab="${tab}"]`);
+      if (btn) setInd({ x: btn.offsetLeft, w: btn.offsetWidth });
+    };
+    place();
+    // písmo se může dočíst později – přeměřit
+    document.fonts?.ready.then(place).catch(() => {});
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  }, [tab]);
+  const go = (id: Tab) => {
+    if (id === tab) return;
+    setTab(id);
+    requestAnimationFrame(() => setTimeout(() => startTransition(() => onTab(id)), 16));
+  };
+  return (
+    <nav className="main-tabs glass" aria-label={t('Sekce')} ref={navRef}>
+      {ind && <span className="nav-indicator" style={{ transform: `translateX(${ind.x}px)`, width: ind.w }} aria-hidden />}
+      {TABS.map((x) => (
+        <button key={x.id} data-tab={x.id} className={tab === x.id ? 'active' : ''} aria-current={tab === x.id ? 'page' : undefined} onClick={() => go(x.id)}>
+          <span className="nav-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d={x.icon} />
+            </svg>
+            {x.id === 'wishlist' && wishCount > 0 && <i className={`nav-badge ${wishCount > 9 ? 'wide' : ''}`}>{wishCount}</i>}
+          </span>
+          {t(x.label)}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 /**
  * Spodní lišta na mobilu (skleněná): záložky s klouzavým zvýrazněním + tlačítko Přidat.
  * Zvýraznění se posouvá jen přes transform (GPU) – plynulé i když se obsah ještě načítá.
