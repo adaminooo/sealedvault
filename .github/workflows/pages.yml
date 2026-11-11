@@ -1,0 +1,69 @@
+# Denní ceny + nasazení appky na GitHub Pages.
+#  - každý den ráno stáhne ceny (Cardmarket, TCGplayer, ČNB), uloží denní záznam do data-src/own a appku nasadí
+#  - při každé změně kódu (push do main) appku sestaví a nasadí znovu
+name: Ceny a nasazení
+
+on:
+  schedule:
+    - cron: '30 6 * * *' # 7:30 / 8:30 v Praze – Cardmarket má nový ceník ráno
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Sestavit appku
+        run: npm run build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+
+      - name: Stáhnout ceny a připravit data
+        run: node scripts/build-data.mjs --out dist/data
+        env:
+          DATA_REMOTE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/data
+
+      - name: Uložit denní záznam cen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data-src/own
+          if ! git diff --cached --quiet; then
+            git commit -m "Denní ceny $(date -u +%F)"
+            git pull --rebase
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

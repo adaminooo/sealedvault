@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bf-top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c4b5ff"/>
+      <stop offset="1" stop-color="#8ef6f2"/>
+    </linearGradient>
+    <linearGradient id="bf-left" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9a7bff"/>
+      <stop offset="1" stop-color="#6a45f0"/>
+    </linearGradient>
+    <linearGradient id="bf-right" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2de2e6"/>
+      <stop offset="1" stop-color="#139fb8"/>
+    </linearGradient>
+    <linearGradient id="bf-ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8f6bff" stop-opacity=".9"/>
+      <stop offset=".5" stop-color="#ffffff" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#2de2e6" stop-opacity=".8"/>
+    </linearGradient>
+    <radialGradient id="bf-glow" cx=".5" cy=".42" r=".55">
+      <stop offset="0" stop-color="#8f6bff" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#8f6bff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="#0a0a10"/>
+  <rect width="64" height="64" rx="15" fill="url(#bf-glow)"/>
+  <rect x=".5" y=".5" width="63" height="63" rx="14.5" fill="none" stroke="url(#bf-ring)"/>
+  <!-- krabice -->
+  <polygon points="32,51 15,41.5 15,22.5 32,32" fill="url(#bf-left)"/>
+  <polygon points="32,51 49,41.5 49,22.5 32,32" fill="url(#bf-right)"/>
+  <polygon points="32,13 49,22.5 32,32 15,22.5" fill="url(#bf-top)"/>
+  <!-- pečeticí páska přes víko a přední hranu -->
+  <polygon points="21.4,18.9 25.6,16.6 42.6,26.1 38.4,28.4" fill="#0a0a10" opacity=".18"/>
+  <polygon points="38.4,28.4 42.6,26.1 42.6,30.2 38.4,32.5" fill="#ffffff" opacity=".35"/>
+  <!-- rostoucí šipka -->
+  <polyline points="18.5,42 22.5,37 25.5,38.8 29.5,32.6" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="26,32.4 29.5,32.6 29.4,36.1" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- světlo na hraně -->
+  <polyline points="15,22.5 32,32 49,22.5" fill="none" stroke="#ffffff" stroke-opacity=".55" stroke-width=".8" stroke-linejoin="round"/>
+  <line x1="32" y1="32" x2="32" y2="51" stroke="#ffffff" stroke-opacity=".25" stroke-width=".8"/>
+</svg>

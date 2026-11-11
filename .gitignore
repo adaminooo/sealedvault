@@ -1,0 +1,14 @@
+node_modules
+dist
+*.tsbuildinfo
+.DS_Store
+
+# Local Netlify folder
+.netlify
+
+# pracovní složka doplňování historie (výsledek je v data-src/tcg-history)
+.backfill
+*.log
+
+# lokální nastavení Claude
+.claude
