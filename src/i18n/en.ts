@@ -545,4 +545,7 @@ export const EN: Record<string, string> = {
   'dnes': 'today',
   'ruční cena, poštovné, odkaz na obrázek': 'manual price, shipping, image link',
   'Premium Collection': 'Premium Collection',
+  'Nejlepší': 'Best',
+  'Nejslabší': 'Worst',
+  'Cenový alert': 'Price alert',
 };

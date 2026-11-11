@@ -1788,3 +1788,16 @@ p, .hint, .pm-features p, .pm-lock-card p { text-wrap: pretty; }
   .market-pill { font-size: 0; gap: 0; width: 40px; padding: 0; justify-content: center; }
   .topbar-inner { gap: 16px; }
 }
+/* =====================================================================
+   Jednotné ikony: stejná tloušťka čáry a zakulacení všude v appce
+   (platí pro všechny ikony kreslené čarou; grafy mají vlastní nastavení)
+   ===================================================================== */
+svg[stroke="currentColor"], svg.icon {
+  stroke-width: 2px; stroke-linecap: round; stroke-linejoin: round;
+  flex: none; vertical-align: -0.15em;
+}
+.dock .bottom-nav .nav-icon svg, .main-tabs.glass .nav-icon svg { stroke-width: 2px; }
+/* ikona v nadpisu (Nejlepší, Nejslabší, Cenový alert…) */
+.h-icon { display: inline-flex; align-items: center; gap: 7px; }
+.h-icon > svg { color: var(--accent-2); }
+.h-icon.pos > svg { color: var(--pos); } .h-icon.neg > svg { color: var(--neg); } .h-icon.gold > svg { color: var(--gold); }

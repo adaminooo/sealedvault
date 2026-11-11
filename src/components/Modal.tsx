@@ -1,3 +1,4 @@
+import { XIcon } from './icons';
 import { useEffect, useRef, type ReactNode } from 'react';
 
 import { t } from '../i18n';
@@ -54,7 +55,7 @@ export function Modal({ title, onClose, children }: Props) {
         <header className="modal-head" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
           <h2>{title}</h2>
           <button className="icon-btn" onClick={onClose} aria-label={t('Zavřít')}>
-            ✕
+            <XIcon size={18} />
           </button>
         </header>
         <div className="modal-body">{children}</div>

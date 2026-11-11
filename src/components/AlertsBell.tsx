@@ -1,3 +1,4 @@
+import { BellIcon } from './icons';
 import { useEffect, useRef, useState } from 'react';
 import type { Currency } from '../types';
 import type { PriceAlert } from '../lib/alerts';
@@ -11,11 +12,6 @@ interface Props {
   onOpen: (a: PriceAlert) => void;
 }
 
-const BellIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0" />
-  </svg>
-);
 
 const LABEL = { wish: 'Wishlist – cílová cena', above: 'Cena nad hranicí', below: 'Cena pod hranicí' };
 
@@ -35,7 +31,7 @@ export function AlertsBell({ alerts, currency, onOpen }: Props) {
   return (
     <div className="bell" ref={ref}>
       <button className={`icon-btn ${alerts.length ? 'on' : ''}`} onClick={() => (isPremium ? setOpen(!open) : openPaywall('alerts'))} aria-label={t('Upozornění ({0})', alerts.length)} title={t('Cenová upozornění')}>
-        <BellIcon />
+        <BellIcon size={18} />
         {alerts.length > 0 && <span className="dot">{alerts.length}</span>}
       </button>
       {open && (

@@ -51,18 +51,18 @@ export function Toolbar({ filters, onChange, sets, seriesOptions, typeOptions, s
         </h3>
         <div className="list-tools">
           <button className="icon-btn" onClick={onExport} title={t('Exportovat zobrazené do CSV')} aria-label={t('Exportovat do CSV')}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M12 18v-6m0 6-3-3m3 3 3-3" />
             </svg>
           </button>
           <div className="view-toggle" role="group" aria-label={t('Zobrazení')}>
             <button className={view === 'list' ? 'active' : ''} onClick={() => onView('list')} aria-label={t('Seznam')} title={t('Seznam')}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
                 <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />
               </svg>
             </button>
             <button className={view === 'grid' ? 'active' : ''} onClick={() => onView('grid')} aria-label={t('Mřížka')} title={t('Mřížka s obrázky')}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" aria-hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
                 <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" /><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" />
                 <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" /><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" />
               </svg>

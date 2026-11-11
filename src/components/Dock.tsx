@@ -49,7 +49,7 @@ export function HeaderTabs({ tab: appTab, wishCount, onTab }: Omit<Props, 'onAdd
       {TABS.map((x) => (
         <button key={x.id} data-tab={x.id} className={tab === x.id ? 'active' : ''} aria-current={tab === x.id ? 'page' : undefined} onClick={() => go(x.id)}>
           <span className="nav-icon">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d={x.icon} />
             </svg>
             {x.id === 'wishlist' && wishCount > 0 && <i className={`nav-badge ${wishCount > 9 ? 'wide' : ''}`}>{wishCount}</i>}

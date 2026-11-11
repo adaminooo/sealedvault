@@ -18,7 +18,7 @@ import { usePersistentState } from '../hooks/usePersistentState';
 import { LineChart, type ChartSeries } from './LineChart';
 import { PerformanceSection } from './PerformanceSection';
 import { PremiumLock } from './PremiumLock';
-import { LockIcon } from './icons';
+import { LockIcon, AlertIcon } from './icons';
 import { usePremium } from '../lib/premium';
 
 import { t, LOCALE } from '../i18n';
@@ -258,7 +258,7 @@ export const AnalyticsView = memo(function AnalyticsView({ items, currency, mark
           </ul>
           {heavy.length > 0 && (
             <p className="conc-warn">
-              ⚠ {heavy.map((h) => h.label).join(', ')} {heavy.length === 1 ? t('tvoří') : t('tvoří každý')} {t('víc než 25 % hodnoty portfolia.')}
+              <AlertIcon size={15} /> {heavy.map((h) => h.label).join(', ')} {heavy.length === 1 ? t('tvoří') : t('tvoří každý')} {t('víc než 25 % hodnoty portfolia.')}
             </p>
           )}
         </section>

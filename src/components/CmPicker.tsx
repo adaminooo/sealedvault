@@ -1,3 +1,4 @@
+import { ExternalIcon } from './icons';
 import { useMemo, useState } from 'react';
 import type { Currency } from '../types';
 import {
@@ -81,7 +82,7 @@ export function CmPicker({ market, marketError, query, product, isAuto, onPick, 
           <div className="cm-product-main">
             <span className="cm-name">{product.name}</span>
             <a href={productUrl(product)} target="_blank" rel="noreferrer" className="cm-link">
-              {t('otevřít na')} {SOURCE_LABEL[product.source]} ↗
+              {t('otevřít na')} {SOURCE_LABEL[product.source]} <ExternalIcon size={12} />
             </a>
           </div>
           <div className="cm-price">

@@ -17,7 +17,7 @@ import {
 } from '../lib/market';
 import { ProductImage } from './ProductImage';
 import { LineChart, type ChartSeries } from './LineChart';
-import { CrownIcon, LockIcon, TrendIcon } from './icons';
+import { CrownIcon, LockIcon, TrendIcon, BellIcon, ExternalIcon } from './icons';
 import { usePremium } from '../lib/premium';
 import { portfolioOf, type Portfolio } from '../lib/portfolios';
 import { PremiumTag } from './PremiumLock';
@@ -76,7 +76,7 @@ function MarketCompare({ mp, alt, market, currency, valuation }: { mp: MarketPro
                 {r.low != null && t(' · od {0}', formatSource(r.low, r.currency))}
               </em>
             </span>
-            <a href={r.url} target="_blank" rel="noreferrer" className="icon-btn sm" aria-label={t('Otevřít na {0}', r.label)}>↗</a>
+            <a href={r.url} target="_blank" rel="noreferrer" className="icon-btn sm" aria-label={t('Otevřít na {0}', r.label)}><ExternalIcon size={14} /></a>
           </li>
         ))}
       </ul>
@@ -228,7 +228,7 @@ export function PositionDetail({ position: p, currency, market, onEditLot, onSel
           <h2>{p.name}</h2>
           {mp && (
             <a href={productUrl(mp)} target="_blank" rel="noreferrer" className="cm-link">
-              {SOURCE_LABEL[mp.source]} ↗
+              {SOURCE_LABEL[mp.source]} <ExternalIcon size={12} />
             </a>
           )}
           <div className="pd-price">
@@ -311,7 +311,7 @@ export function PositionDetail({ position: p, currency, market, onEditLot, onSel
       {s.held > 0 && !isPremium && (
         <section className="card-lite pd-alerts locked">
           <header>
-            <h3>{t('🔔 Cenový alert')}</h3>
+            <h3 className="h-icon"><BellIcon size={16} />{t('Cenový alert')}</h3>
             <PremiumTag />
           </header>
           <p className="hint">{t('Dostaň upozornění, když cena stoupne nad nebo klesne pod tvoji hranici.')}</p>
@@ -324,7 +324,7 @@ export function PositionDetail({ position: p, currency, market, onEditLot, onSel
       {s.held > 0 && isPremium && (
         <section className="card-lite pd-alerts">
           <header>
-            <h3>{t('🔔 Cenový alert')}</h3>
+            <h3 className="h-icon"><BellIcon size={16} />{t('Cenový alert')}</h3>
             <span className="hint">{t('teď')} {money(head.currentPrice, currency)} {t('/ ks')}</span>
           </header>
           <div className="alert-inputs">

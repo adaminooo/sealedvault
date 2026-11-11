@@ -19,7 +19,7 @@ import { ItemForm } from './components/ItemForm';
 import { Modal } from './components/Modal';
 import { Toolbar } from './components/Toolbar';
 import { GameChart } from './components/GameChart';
-import { GearIcon, Logo, PlusIcon, SearchIcon } from './components/icons';
+import { GearIcon, Logo, PlusIcon, SearchIcon, ShareIcon } from './components/icons';
 import { SettingsPanel } from './components/SettingsPanel';
 import { APP_FULL_NAME, APP_VERSION, diagnostics, mailtoUrl } from './config';
 import { useWishlist } from './hooks/useWishlist';
@@ -356,7 +356,7 @@ export default function App() {
   useEffect(() => {
     if (!market) return;
     notifyNew(alerts, (czk) => money(czk, currency)).then((n) => {
-      if (n) showToast(`🔔 ${n === 1 ? t('Splněný cenový alert') : t('{0} splněné cenové alerty', n)}`);
+      if (n) showToast(`${n === 1 ? t('Splněný cenový alert') : t('{0} splněné cenové alerty', n)}`);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alerts.map((a) => a.id).join('|'), market]);
@@ -474,9 +474,7 @@ export default function App() {
             <AlertsBell alerts={alerts} currency={currency} onOpen={openAlert} />
             {items.length > 0 && (
               <button className="icon-btn" onClick={() => setDialog({ kind: 'share' })} aria-label={t('Sdílet portfolio')} title={t('Sdílet portfolio')}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v13" />
-                </svg>
+                <ShareIcon size={18} />
               </button>
             )}
             <button className="icon-btn" onClick={() => setDialog({ kind: 'settings' })} aria-label={t('Nastavení')} title={t('Nastavení, záloha a podpora')}>

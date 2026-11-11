@@ -3,7 +3,7 @@ import type { Currency, PortfolioItem } from '../types';
 import type { HistoryData, PortfolioPoint } from '../lib/portfolio';
 import { avgHoldingDays, cashFlows, groupPerformance, portfolioChange, positionPerformance, xirr } from '../lib/performance';
 import { plural, money, pct, signedMoney, tone } from '../lib/format';
-import { TrendIcon } from './icons';
+import { TrendIcon, TrophyIcon, TrendDownIcon } from './icons';
 
 import { LANG, t } from '../i18n';
 interface Props {
@@ -90,11 +90,11 @@ export function PerformanceSection({ items, hist, points, currency, seriesOf, on
 
       <div className="perf-cols">
         <div>
-          <h4>{t('🏆 Nejlepší')}</h4>
+          <h4 className="h-icon gold"><TrophyIcon size={15} />{t('Nejlepší')}</h4>
           <ul className="pf-list">{best.map((p) => <Row key={p.position.key} p={p} />)}</ul>
         </div>
         <div>
-          <h4>{t('📉 Nejslabší')}</h4>
+          <h4 className="h-icon neg"><TrendDownIcon size={15} />{t('Nejslabší')}</h4>
           <ul className="pf-list">{worst.length ? worst.map((p) => <Row key={p.position.key} p={p} />) : <li className="hint">{t('Zatím málo položek.')}</li>}</ul>
         </div>
       </div>

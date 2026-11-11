@@ -1,3 +1,4 @@
+import { TargetIcon } from './icons';
 import { useState } from 'react';
 import { GAMES, type Currency, type Game, type WishlistItem } from '../types';
 import { inferType, marketPrice, productImageFor, toCzk, type MarketProduct, type MarketSnapshot } from '../lib/market';
@@ -70,7 +71,7 @@ export function WishlistView({ wishlist, market, currency, onAdd, onUpdate, onRe
           </div>
         </header>
         <ProductSearch market={market} game={game} currency={currency} onPick={add} />
-        {hits > 0 && <p className="wl-hits">🎯 {hits} {hits === 1 ? t('produkt je') : t('produkty jsou')} {t('na cílové ceně nebo pod ní')}</p>}
+        {hits > 0 && <p className="wl-hits h-icon pos"><TargetIcon size={15} />{hits} {hits === 1 ? t('produkt je') : t('produkty jsou')} {t('na cílové ceně nebo pod ní')}</p>}
       </section>
 
       {wishlist.length === 0 ? (

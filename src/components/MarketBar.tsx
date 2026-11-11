@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { SOURCE_LABEL, type MarketSnapshot } from '../lib/market';
-import { ChevronIcon } from './icons';
+import { ChevronIcon, RefreshIcon } from './icons';
 
 import { t, LOCALE } from '../i18n';
 interface Props {
@@ -16,11 +16,6 @@ interface Props {
 const dateFmt = new Intl.DateTimeFormat(LOCALE, { day: 'numeric', month: 'numeric' });
 const rateFmt = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-const RefreshIcon = () => (
-  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="M21 12a9 9 0 1 1-2.6-6.4M21 4v5h-5" />
-  </svg>
-);
 
 /**
  * Stav cen z trhu: na mobilu nenápadný řádek (rozbalí se klepnutím),
@@ -48,7 +43,7 @@ export function MarketBar({ market, loading, error, linked, unlinked, onRefresh,
           <span className="market-chev"><ChevronIcon /></span>
         </button>
         <button className="icon-btn sm" onClick={onRefresh} disabled={loading} title={t('Načíst ceny znovu')} aria-label={t('Načíst ceny znovu')}>
-          <RefreshIcon />
+          <RefreshIcon size={15} />
         </button>
       </div>
 
