@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import type { PortfolioItem } from '../types';
 import { fetchHistory } from '../lib/history';
 import { priceChanges, type PriceChange } from '../lib/changes';
-import { portfolioSeries, type HistoryData } from '../lib/portfolio';
+import type { HistoryData } from '../lib/portfolio';
+import { heldQty } from '../lib/calc';
+import { rateLookup } from '../components/PositionDetail';
 
 const DAY = 864e5;
 const isoDaysAgo = (n: number) => new Date(Date.now() - n * DAY).toISOString().slice(0, 10);
-const today = () => new Date().toISOString().slice(0, 10);
 
 /**
  * Historie cen držených produktů za posledních 90 dní:
@@ -43,19 +44,46 @@ export function usePriceChanges(items: PortfolioItem[], trendItems: PortfolioIte
     return out;
   }, [hist]);
 
-  // hodnota portfolia po dnech (jen dny, kdy už byly nákupy) – pro křivku na hlavní kartě
+  // hodnota TOHO, CO TEĎ DRŽÍŠ, po dnech za posledních 90 dní (nezávisle na datu nákupu)
+  //  – tak graf funguje i u položek přidaných dnes; vývoj od nákupů je v Analýze
   const trend = useMemo(() => {
     if (!hist || !trendItems.length) return null;
-    const from = isoDaysAgo(90);
-    const pts = portfolioSeries(trendItems, hist, today()).filter((p) => p.date >= from && p.value != null);
-    if (pts.length < 5) return null;
-    // vyhladit: průměr po ~3 dnech (čistší křivka bez schodů z týdenních dat)
-    const vals = pts.map((p) => p.value as number);
+    const held = trendItems.filter((it) => heldQty(it) > 0);
+    if (!held.length) return null;
+    const rate = rateLookup(hist.rates);
+    const days: string[] = [];
+    for (let i = 90; i >= 1; i--) days.push(isoDaysAgo(i));
+    // ceny po dnech (poslední známá; před prvním záznamem první známá)
+    const priced = held.map((it) => {
+      const pts = it.cmProductId ? hist.series[String(it.cmProductId)] ?? [] : [];
+      return { it, pts, usd: !!it.cmProductId && it.cmProductId >= 1e9 };
+    });
+    if (!priced.some((x) => x.pts.length >= 2)) return null;
+    const idx = priced.map(() => 0);
+    const vals: number[] = [];
+    for (const d of days) {
+      let v = 0;
+      priced.forEach((x, k) => {
+        const q = heldQty(x.it);
+        if (!x.pts.length) {
+          v += q * x.it.currentPrice;
+          return;
+        }
+        while (idx[k] + 1 < x.pts.length && x.pts[idx[k] + 1][0] <= d) idx[k]++;
+        const native = x.pts[idx[k]][1];
+        const r = rate(d, x.usd ? 1 : 0);
+        v += q * (r ? native * r : x.it.currentPrice);
+      });
+      vals.push(v);
+    }
+    // dnešek = aktuální ceny
+    vals.push(held.reduce((a, it) => a + heldQty(it) * it.currentPrice, 0));
+    // vyhladit na ~30 bodů
     const step = Math.max(1, Math.round(vals.length / 30));
     const out: number[] = [];
     for (let i = 0; i < vals.length; i += step) {
       const chunk = vals.slice(i, i + step);
-      out.push(chunk.reduce((a, v) => a + v, 0) / chunk.length);
+      out.push(chunk.reduce((a, x) => a + x, 0) / chunk.length);
     }
     out[out.length - 1] = vals[vals.length - 1];
     return out;
