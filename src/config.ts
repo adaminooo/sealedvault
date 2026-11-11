@@ -1,7 +1,7 @@
 /** Základní údaje o aplikaci – na jednom místě */
 export const APP_NAME = 'SealedVault';
 export const APP_FULL_NAME = 'SealedVault TCG';
-export const APP_VERSION = '1.2.2';
+export const APP_VERSION = '1.3.0';
 
 /** Adresa podpory (zobrazí se v Nastavení → Podpora) */
 export const SUPPORT_EMAIL = 'sealedvault.support@gmail.com';
@@ -16,8 +16,8 @@ export const PUBLIC_URL = 'https://adaminooo.github.io/sealedvault/';
  * Účty a synchronizace (Supabase). Oba údaje jsou veřejné – určené pro prohlížeč;
  * data chrání pravidla v databázi (supabase/schema.sql). Prázdné = appka funguje jen lokálně.
  */
-export const SUPABASE_URL = '';
-export const SUPABASE_ANON_KEY = '';
+export const SUPABASE_URL = 'https://xvoosxlqoyrbefvwkdgm.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_HR4b2YUdDFiYGYKqm-gzjw_6kUpkF0w';
 
 /** Orientační ceny Premium (Kč) – platby zatím nejsou spuštěné */
 export const PREMIUM_PRICE = { monthly: 79, yearly: 690 };
