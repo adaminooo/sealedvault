@@ -16,8 +16,10 @@ import { useStoredState } from '@/data/use-stored-state';
 import { items as itemsStore, wishlist as wishStore } from '@/db/store';
 import { authMessage, deleteAccount, signOut, syncNow, useCloud } from '@/sync/cloud';
 import { disablePush, enablePush, forgetPush, usePushEnabled } from '@/sync/push';
-import { AppText, Button, Card, Screen, color, font, radius, space } from '@/ui';
-import { Chip, ChipRow } from '@/ui/chip';
+import { AppText, Button, Card, Screen, color, font, space } from '@/ui';
+import { Icon } from '@/ui/icon';
+import { Group, Row } from '@/ui/list';
+import { Chip } from '@/ui/chip';
 
 function confirmAction(title: string, msg: string, ok: string, run: () => void) {
   if (Platform.OS === 'web') {
@@ -132,183 +134,175 @@ export default function AccountScreen() {
     }
   };
 
+  const initial = (cloud.user?.email ?? '?').slice(0, 1).toUpperCase();
+
   return (
     <Screen keyboardShouldPersistTaps="handled">
-      <Card>
-        <AppText variant="overline" color={color.muted}>
-          {t('Účet')}
-        </AppText>
-        {!cloud.ready ? null : cloud.user ? (
-          <>
-            <AppText variant="bodyStrong" numberOfLines={1}>
+      {/* Profil */}
+      {!cloud.ready ? null : cloud.user ? (
+        <View style={styles.profile}>
+          <View style={styles.avatar}>
+            <AppText variant="title" color="#fff">
+              {initial}
+            </AppText>
+          </View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <AppText variant="bodyStrong" numberOfLines={1} selectable>
               {cloud.user.email}
             </AppText>
-            <AppText variant="caption" color={cloud.error ? color.neg : color.muted}>
-              {status}
-            </AppText>
-            <View style={styles.row2}>
-              <Button style={{ flex: 1 }} label={t('Synchronizovat')} variant="secondary" onPress={() => void syncNow()} disabled={cloud.syncing} />
-              <Button
-                style={{ flex: 1 }}
-                label={t('Odhlásit se')}
-                variant="secondary"
-                onPress={() => confirmAction(t('Odhlásit se'), t('Odhlásit se? Data zůstanou v tomto zařízení.'), t('Odhlásit se'), () => void logout())}
-              />
+            <View style={styles.syncLine}>
+              <View style={[styles.dot, { backgroundColor: cloud.error ? color.neg : cloud.syncing ? color.gold : color.pos }]} />
+              <AppText variant="caption" color={cloud.error ? color.neg : color.muted} numberOfLines={2} style={{ flex: 1 }}>
+                {status}
+              </AppText>
             </View>
-            <View style={styles.switchRow}>
-              <View style={{ flex: 1 }}>
-                <AppText variant="bodyStrong">{t('Upozornění na ceny')}</AppText>
-                <AppText variant="caption" color={color.muted}>
-                  {t('Jednou denně, když cena překročí tvůj alert nebo klesne na cíl z wishlistu.')}
-                </AppText>
-              </View>
-              {pushBusy ? <ActivityIndicator color={color.accent2} /> : <Switch value={pushOn} onValueChange={(v) => void togglePush(v)} trackColor={{ true: color.accent }} />}
-            </View>
-            {pushMsg && <AppText variant="caption" color={color.neg}>{pushMsg}</AppText>}
-          </>
-        ) : (
-          <>
-            <AppText variant="heading">{t('Nepřihlášený')}</AppText>
-            <AppText color={color.muted}>{t('Data jsou jen v tomto zařízení. S účtem je máš na počítači i telefonu.')}</AppText>
-            <Button label={t('Přihlásit se')} onPress={() => router.push('/auth')} />
-          </>
-        )}
-      </Card>
-
-      <Section title={t('Nastavení')}>
-        <Card style={{ gap: space.md }}>
-          <Setting label={t('Měna')}>
-            <Chip label={t('Kč')} active={currency === 'CZK'} onPress={() => setCurrency('CZK')} />
-            <Chip label="€" active={currency === 'EUR'} onPress={() => setCurrency('EUR')} />
-          </Setting>
-          <Setting label={t('Jazyk')}>
-            <Chip label="Čeština" active={LANG === 'cs'} onPress={() => changeLang('cs')} />
-            <Chip label="English" active={LANG === 'en'} onPress={() => changeLang('en')} />
-          </Setting>
-          <AppText variant="caption" color={color.faint}>
-            {t('Částky se ukládají v Kč; € se přepočítává kurzem ČNB.')}
+          </View>
+        </View>
+      ) : (
+        <Card style={{ alignItems: 'center', gap: space.sm, paddingVertical: space.xl }}>
+          <View style={[styles.avatar, { backgroundColor: color.surface3 }]}>
+            <Icon sf="person.fill" md="person" size={26} color={color.muted} />
+          </View>
+          <AppText variant="heading">{t('Nepřihlášený')}</AppText>
+          <AppText color={color.muted} style={{ textAlign: 'center' }}>
+            {t('Data jsou jen v tomto zařízení. S účtem je máš na počítači i telefonu.')}
           </AppText>
+          <Button label={t('Přihlásit se')} onPress={() => router.push('/auth')} style={{ alignSelf: 'stretch', marginTop: space.xs }} />
         </Card>
-      </Section>
+      )}
 
-      <Section title={t('Portfolia')}>
-        <Card style={{ gap: space.sm }}>
-          {pf.list.map((p) => (
-            <View key={p.id} style={styles.pfRow}>
-              <TextInput
-                defaultValue={t(p.name)}
-                onEndEditing={(e) => rename(p.id, e.nativeEvent.text)}
-                onBlur={(e) => Platform.OS === 'web' && rename(p.id, (e.target as unknown as { value: string }).value)}
-                style={styles.pfInput}
-                keyboardAppearance="dark"
-                accessibilityLabel={t('Název portfolia')}
-              />
-              {p.id !== MAIN_ID && (
-                <Pressable onPress={() => remove(p.id, p.name)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('Smazat portfolio')}>
-                  <AppText variant="label" color={color.neg}>
-                    {t('Smazat')}
-                  </AppText>
-                </Pressable>
-              )}
+      {cloud.user && (
+        <Group footer={pushMsg ?? undefined}>
+          <Row
+            sf="arrow.triangle.2.circlepath"
+            md="sync"
+            tint="#2b9fd6"
+            title={t('Synchronizovat teď')}
+            onPress={() => void syncNow()}
+            right={cloud.syncing ? <ActivityIndicator color={color.accent2} /> : null}
+          />
+          <Row
+            sf="bell.badge.fill"
+            md="notifications-active"
+            tint="#ff4d6a"
+            title={t('Upozornění na ceny')}
+            subtitle={t('Jednou denně, když cena překročí tvůj alert nebo klesne na cíl z wishlistu.')}
+            right={pushBusy ? <ActivityIndicator color={color.accent2} /> : <Switch value={pushOn} onValueChange={(v) => void togglePush(v)} trackColor={{ true: color.accent }} />}
+          />
+        </Group>
+      )}
+
+      <Group title={t('Nastavení')} footer={t('Částky se ukládají v Kč; € se přepočítává kurzem ČNB.')}>
+        <Row
+          sf="dollarsign.circle.fill"
+          md="currency-exchange"
+          tint="#3ddc84"
+          title={t('Měna')}
+          right={
+            <View style={styles.seg}>
+              <Chip label={t('Kč')} active={currency === 'CZK'} onPress={() => setCurrency('CZK')} />
+              <Chip label="€" active={currency === 'EUR'} onPress={() => setCurrency('EUR')} />
             </View>
-          ))}
-          <View style={styles.pfRow}>
+          }
+        />
+        <Row
+          sf="globe"
+          md="language"
+          tint="#8f6bff"
+          title={t('Jazyk')}
+          right={
+            <View style={styles.seg}>
+              <Chip label="CZ" active={LANG === 'cs'} onPress={() => changeLang('cs')} />
+              <Chip label="EN" active={LANG === 'en'} onPress={() => changeLang('en')} />
+            </View>
+          }
+        />
+      </Group>
+
+      <Group title={t('Portfolia')} footer={t('Portfolia se synchronizují s účtem. Mezi portfolii přepínáš nahoře na hlavní obrazovce.')}>
+        {pf.list.map((p) => (
+          <View key={p.id} style={styles.pfRow}>
+            <View style={[styles.tile, { backgroundColor: '#b08a0c' }]}>
+              <Icon sf="folder.fill" md="folder" size={15} color="#fff" />
+            </View>
             <TextInput
-              value={newName}
-              onChangeText={setNewName}
-              onSubmitEditing={addPortfolio}
-              placeholder={t('Nové portfolio, např. Investice')}
-              placeholderTextColor={color.faint}
+              defaultValue={t(p.name)}
+              onEndEditing={(e) => rename(p.id, e.nativeEvent.text)}
+              onBlur={(e) => Platform.OS === 'web' && rename(p.id, (e.target as unknown as { value: string }).value)}
               style={styles.pfInput}
               keyboardAppearance="dark"
-              returnKeyType="done"
+              accessibilityLabel={t('Název portfolia')}
             />
-            <Pressable onPress={addPortfolio} hitSlop={8} accessibilityRole="button" disabled={!newName.trim()}>
-              <AppText variant="label" color={newName.trim() ? color.accent2 : color.faint}>
+            {p.id !== MAIN_ID && (
+              <Pressable onPress={() => remove(p.id, p.name)} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('Smazat portfolio')}>
+                <Icon sf="minus.circle.fill" md="remove-circle" size={20} color={color.neg} />
+              </Pressable>
+            )}
+          </View>
+        ))}
+        <View style={styles.pfRow}>
+          <View style={[styles.tile, { backgroundColor: color.surface3 }]}>
+            <Icon sf="plus" md="add" size={15} color={color.accent2} />
+          </View>
+          <TextInput
+            value={newName}
+            onChangeText={setNewName}
+            onSubmitEditing={addPortfolio}
+            placeholder={t('Nové portfolio, např. Investice')}
+            placeholderTextColor={color.faint}
+            style={styles.pfInput}
+            keyboardAppearance="dark"
+            returnKeyType="done"
+          />
+          {newName.trim() ? (
+            <Pressable onPress={addPortfolio} hitSlop={10} accessibilityRole="button">
+              <AppText variant="label" color={color.accent2}>
                 {t('Přidat')}
               </AppText>
             </Pressable>
-          </View>
-          <AppText variant="caption" color={color.faint}>
-            {t('Portfolia se synchronizují s účtem. Mezi portfolii přepínáš nahoře na hlavní obrazovce.')}
-          </AppText>
-        </Card>
-      </Section>
+          ) : null}
+        </View>
+      </Group>
 
-      <Section title={t('Záloha')}>
-        <Card>
-          <AppText color={color.muted}>{t('Uloží všechna data do souboru JSON – stejný formát jako na webu, jde nahrát zpět.')}</AppText>
-          <Button label={t('Exportovat zálohu')} variant="secondary" onPress={() => void exportBackup()} />
-          {backupMsg && <AppText color={color.neg}>{backupMsg}</AppText>}
-        </Card>
-      </Section>
+      <Group title={t('Data')} footer={backupMsg ?? t('Záloha je soubor JSON ve stejném formátu jako na webu – jde nahrát zpět.')}>
+        <Row sf="square.and.arrow.up.fill" md="ios-share" tint="#6d5cff" title={t('Exportovat zálohu')} onPress={() => void exportBackup()} chevron />
+      </Group>
+
+      <Group title={t('Podpora')} footer={`SealedVault ${Constants.expoConfig?.version ?? ''}`}>
+        <Row
+          sf="envelope.fill"
+          md="mail"
+          tint="#4f7dff"
+          title={t('Napsat podpoře')}
+          subtitle={SUPPORT_EMAIL}
+          onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('SealedVault – mobilní appka')}`)}
+          chevron
+        />
+      </Group>
 
       {cloud.user && (
-        <Section title={t('Smazání účtu')}>
-          <Card>
-            <AppText variant="caption" color={color.muted}>
-              {t('Smaže účet a všechna data uložená na serveru. Na ostatních zařízeních se odhlásíš.')}
-            </AppText>
-            {deleting ? (
-              <ActivityIndicator color={color.neg} style={{ minHeight: 44 }} />
-            ) : (
-              <Pressable onPress={removeAccount} style={styles.danger} accessibilityRole="button">
-                <AppText variant="bodyStrong" color={color.neg}>
-                  {t('Smazat účet')}
-                </AppText>
-              </Pressable>
-            )}
-          </Card>
-        </Section>
+        <Group footer={t('Smazání účtu odstraní všechna data na serveru. Data v tomto telefonu zůstanou.')}>
+          <Row
+            sf="rectangle.portrait.and.arrow.right"
+            md="logout"
+            tint="#60606f"
+            title={t('Odhlásit se')}
+            onPress={() => confirmAction(t('Odhlásit se'), t('Odhlásit se? Data zůstanou v tomto zařízení.'), t('Odhlásit se'), () => void logout())}
+          />
+          <Row sf="trash.fill" md="delete" tint="#ff4d6a" title={t('Smazat účet')} destructive onPress={removeAccount} right={deleting ? <ActivityIndicator color={color.neg} /> : null} />
+        </Group>
       )}
-
-      <Section title={t('Podpora')}>
-        <Card>
-          <Pressable onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('SealedVault – mobilní appka')}`)} accessibilityRole="link">
-            <AppText color={color.accent2}>{SUPPORT_EMAIL}</AppText>
-          </Pressable>
-          <AppText variant="caption" color={color.faint}>
-            SealedVault {Constants.expoConfig?.version ?? ''}
-          </AppText>
-        </Card>
-      </Section>
     </Screen>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View style={{ gap: space.sm }}>
-      <AppText variant="heading">{title}</AppText>
-      {children}
-    </View>
-  );
-}
-
-function Setting({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <View style={{ gap: space.sm }}>
-      <AppText variant="label" color={color.muted}>
-        {label}
-      </AppText>
-      <ChipRow>{children}</ChipRow>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  row2: { flexDirection: 'row', gap: space.sm },
-  switchRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.sm },
-  danger: { minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, backgroundColor: color.negBg },
-  pfRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
-  pfInput: {
-    flex: 1,
-    minHeight: 44,
-    borderRadius: radius.sm,
-    backgroundColor: color.surface2,
-    paddingHorizontal: space.md,
-    color: color.text,
-    fontFamily: font.body,
-    fontSize: 16,
-  },
+  profile: { flexDirection: 'row', alignItems: 'center', gap: space.lg, paddingVertical: space.sm },
+  avatar: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center', backgroundColor: color.accent },
+  syncLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot: { width: 7, height: 7, borderRadius: 4 },
+  seg: { flexDirection: 'row', gap: 6 },
+  tile: { width: 28, height: 28, borderRadius: 8, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },
+  pfRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, minHeight: 52 },
+  pfInput: { flex: 1, minHeight: 44, color: color.text, fontFamily: font.body, fontSize: 16 },
 });

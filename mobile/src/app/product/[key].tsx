@@ -1,6 +1,7 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { heldQty, unitCost } from '@/core/calc';
@@ -14,17 +15,20 @@ import type { Currency } from '@/core/types';
 import { useHistory, useMarket } from '@/data/queries';
 import { useStoredState } from '@/data/use-stored-state';
 import { items as itemsStore, useCollection } from '@/db/store';
-import { AppText, Button, Card, Screen, color, space, toneColor } from '@/ui';
+import { AlertsCard } from '@/screens/product/alerts-card';
+import { AppText, Button, Card, Screen, color, radius, space, toneColor } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
+import { Icon } from '@/ui/icon';
 import { LineChart } from '@/ui/line-chart';
 import { PhotoStrip } from '@/ui/photo-strip';
+import { TrendPill } from '@/ui/pill';
 import { ProductThumb } from '@/ui/product-thumb';
-import { AlertsCard } from '@/screens/product/alerts-card';
 
 const RANGES = { '1M': 30, '3M': 90, '1R': 365, [`ALL`]: 0 } as const;
 type Range = keyof typeof RANGES;
+type IconProps = ComponentProps<typeof Icon>;
 
-/** Detail produktu: graf ceny s kurzorem, souhrn pozice, trh a nákupní dávky */
+/** Detail produktu: velký obrázek, cena s grafem a kurzorem, souhrn pozice, alert, trh a nákupy */
 export default function ProductScreen() {
   const { key } = useLocalSearchParams<{ key: string }>();
   const all = useCollection(itemsStore);
@@ -63,35 +67,51 @@ export default function ProductScreen() {
   const rangeChange = first && shown ? ((shown[1] - first) / first) * 100 : null;
   const chartColor = rangeChange == null || rangeChange >= 0 ? color.pos : color.neg;
   const s = p.stats;
+  const sell = () => router.push({ pathname: '/sell/[key]', params: { key: p.key } });
+  const addLot = () => router.push({ pathname: '/add', params: { from: p.key } });
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: t('Detail') }} />
+      <Stack.Screen options={{ title: '' }} />
+      {process.env.EXPO_OS === 'ios' && (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Menu icon="ellipsis" accessibilityLabel={t('Další akce')}>
+            {s.held > 0 ? (
+              <Stack.Toolbar.MenuAction icon="banknote" onPress={sell}>
+                {t('Prodat')}
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+            <Stack.Toolbar.MenuAction icon="plus.circle" onPress={addLot}>
+              {t('Přidat další nákup')}
+            </Stack.Toolbar.MenuAction>
+            {product ? (
+              <Stack.Toolbar.MenuAction icon="safari" onPress={() => void WebBrowser.openBrowserAsync(productUrl(product))}>
+                {t('Otevřít na trhu')}
+              </Stack.Toolbar.MenuAction>
+            ) : null}
+          </Stack.Toolbar.Menu>
+        </Stack.Toolbar>
+      )}
 
-      <View style={styles.head}>
-        <ProductThumb item={p.head} size={72} />
-        <View style={{ flex: 1, gap: 2 }}>
-          <AppText variant="heading" numberOfLines={3}>
-            {p.name}
-          </AppText>
-          <AppText variant="caption" color={color.muted}>
-            {[p.game, p.head.set, t(p.head.type)].filter(Boolean).join(' · ')}
-          </AppText>
-        </View>
+      <View style={styles.hero}>
+        <LinearGradient colors={['rgba(143,107,255,0.22)', 'transparent']} style={StyleSheet.absoluteFill} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} />
+        <ProductThumb item={p.head} size={148} />
+        <AppText variant="title" style={{ textAlign: 'center' }} numberOfLines={3} selectable>
+          {p.name}
+        </AppText>
+        <AppText variant="caption" color={color.muted} style={{ textAlign: 'center' }}>
+          {[p.game, p.head.set, t(p.head.type)].filter(Boolean).join(' · ')}
+        </AppText>
       </View>
 
       <Card>
         <AppText variant="overline" color={color.muted}>
           {scrub != null && shown ? date(shown[0]) : t('Cena za kus')}
         </AppText>
-        <AppText variant="title" tabular>
+        <AppText variant="hero" tabular selectable>
           {money(shown?.[1] ?? p.head.currentPrice, currency)}
         </AppText>
-        {rangeChange != null && (
-          <AppText variant="label" tabular color={toneColor[tone(rangeChange)]}>
-            {pct(rangeChange)} {scrub == null ? t('za období') : t('od začátku období')}
-          </AppText>
-        )}
+        {rangeChange != null && <TrendPill tone={tone(rangeChange)} label={`${pct(rangeChange)} ${scrub == null ? t('za období') : t('od začátku období')}`} />}
         {points.length >= 2 ? (
           <LineChart points={points} color={chartColor} height={190} onScrub={setScrub} />
         ) : (
@@ -106,14 +126,14 @@ export default function ProductScreen() {
         </ChipRow>
       </Card>
 
-      <Card>
-        <Stat label={t('Držíš')} value={`${s.held} ${t('ks')}`} />
-        <Stat label={t('Hodnota')} value={money(s.value, currency)} />
-        <Stat label={t('Průměrná nákupní cena')} value={money(p.avgCost, currency)} />
-        <Stat label={t('Investováno')} value={money(s.cost, currency)} />
-        <Stat label={t('Profit')} value={`${signedMoney(s.profit, currency)} · ${pct(s.profitPct)}`} tint={toneColor[tone(s.profit)]} />
-        {s.sold > 0 && <Stat label={t('Realizovaný zisk')} value={signedMoney(s.realized, currency)} tint={toneColor[tone(s.realized)]} />}
-      </Card>
+      <View style={styles.tiles}>
+        <Tile sf="shippingbox" md="inventory-2" label={t('Držíš')} value={`${s.held} ${t('ks')}`} />
+        <Tile sf="banknote" md="payments" label={t('Hodnota')} value={money(s.value, currency)} />
+        <Tile sf="cart" md="shopping-cart" label={t('Ø nákup / ks')} value={money(p.avgCost, currency)} />
+        <Tile sf="chart.line.uptrend.xyaxis" md="trending-up" label={t('Profit')} value={signedMoney(s.profit, currency)} sub={pct(s.profitPct)} tint={toneColor[tone(s.profit)]} />
+        <Tile sf="creditcard" md="credit-card" label={t('Investováno')} value={money(s.cost, currency)} />
+        {s.sold > 0 && <Tile sf="checkmark.seal" md="verified" label={t('Realizovaný zisk')} value={signedMoney(s.realized, currency)} tint={toneColor[tone(s.realized)]} />}
+      </View>
 
       {s.held > 0 && <AlertsCard key={p.key} position={p} currency={currency} />}
 
@@ -121,17 +141,18 @@ export default function ProductScreen() {
 
       {product && (
         <Pressable onPress={() => void WebBrowser.openBrowserAsync(productUrl(product))} accessibilityRole="link">
-          <Card style={styles.linkCard}>
-            <View style={{ flex: 1 }}>
-              <AppText variant="bodyStrong">{SOURCE_LABEL[product.source]}</AppText>
-              <AppText variant="caption" color={color.muted} numberOfLines={1}>
-                {product.name}
-              </AppText>
-            </View>
-            <AppText variant="label" color={color.accent2}>
-              {t('Otevřít')} ↗
-            </AppText>
-          </Card>
+          {({ pressed }) => (
+            <Card style={[styles.linkCard, pressed && { opacity: 0.7 }]}>
+              <Icon sf="storefront" md="storefront" size={20} color={color.accent2} />
+              <View style={{ flex: 1 }}>
+                <AppText variant="bodyStrong">{SOURCE_LABEL[product.source]}</AppText>
+                <AppText variant="caption" color={color.muted} numberOfLines={1}>
+                  {product.name}
+                </AppText>
+              </View>
+              <Icon sf="arrow.up.right" md="open-in-new" size={16} color={color.accent2} />
+            </Card>
+          )}
         </Pressable>
       )}
 
@@ -140,7 +161,11 @@ export default function ProductScreen() {
       </AppText>
       <Card style={{ gap: 0, paddingVertical: space.xs }}>
         {p.lots.map((l, i) => (
-          <Pressable key={l.id} onPress={() => router.push({ pathname: '/add', params: { id: l.id } })} accessibilityRole="button" style={({ pressed }) => [styles.lot, i > 0 && styles.divider, pressed && { opacity: 0.6 }]}>
+          <Pressable
+            key={l.id}
+            onPress={() => router.push({ pathname: '/add', params: { id: l.id } })}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.lot, i > 0 && styles.divider, pressed && { opacity: 0.6 }]}>
             <View style={{ flex: 1 }}>
               <AppText variant="bodyStrong">
                 {l.quantity}× {money(unitCost(l), currency)}
@@ -151,36 +176,59 @@ export default function ProductScreen() {
                 {l.note ? ` · ${l.note}` : ''}
               </AppText>
             </View>
-            <AppText variant="label" tabular color={toneColor[tone(l.currentPrice - unitCost(l))]}>
-              {pct(unitCost(l) > 0 ? ((l.currentPrice - unitCost(l)) / unitCost(l)) * 100 : null)}
-            </AppText>
+            <TrendPill small tone={tone(l.currentPrice - unitCost(l))} label={pct(unitCost(l) > 0 ? ((l.currentPrice - unitCost(l)) / unitCost(l)) * 100 : null)} />
+            <Icon sf="chevron.right" md="chevron-right" size={13} color={color.faint} />
           </Pressable>
         ))}
       </Card>
 
-      <View style={{ gap: space.sm }}>
-        {s.held > 0 && <Button label={t('Prodat')} onPress={() => router.push({ pathname: '/sell/[key]', params: { key: p.key } })} />}
-        <Button variant="secondary" label={t('Přidat další nákup')} onPress={() => router.push({ pathname: '/add', params: { from: p.key } })} />
+      <View style={styles.actions}>
+        {s.held > 0 && <Button style={{ flex: 1 }} label={t('Prodat')} onPress={sell} />}
+        <Button style={{ flex: 1 }} variant="secondary" label={t('Další nákup')} onPress={addLot} />
       </View>
     </Screen>
   );
 }
 
-function Stat({ label, value, tint }: { label: string; value: string; tint?: string }) {
+/** Dlaždice s jedním číslem (dvě vedle sebe) */
+function Tile({ sf, md, label, value, sub, tint }: { sf: IconProps['sf']; md: IconProps['md']; label: string; value: string; sub?: string; tint?: string }) {
   return (
-    <View style={styles.stat}>
-      <AppText color={color.muted}>{label}</AppText>
-      <AppText variant="bodyStrong" tabular color={tint}>
+    <View style={styles.tile}>
+      <View style={styles.tileHead}>
+        <Icon sf={sf} md={md} size={14} color={color.muted} />
+        <AppText variant="caption" color={color.muted}>
+          {label}
+        </AppText>
+      </View>
+      <AppText variant="heading" tabular color={tint} numberOfLines={1} adjustsFontSizeToFit selectable>
         {value}
       </AppText>
+      {sub ? (
+        <AppText variant="caption" tabular color={tint}>
+          {sub}
+        </AppText>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  head: { flexDirection: 'row', gap: space.lg, alignItems: 'center' },
-  stat: { flexDirection: 'row', justifyContent: 'space-between', gap: space.md, paddingVertical: 2 },
+  hero: { alignItems: 'center', gap: space.sm, paddingTop: space.md, paddingBottom: space.md, paddingHorizontal: space.lg, marginHorizontal: -space.lg },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
+  tile: {
+    flexBasis: '46%',
+    flexGrow: 1,
+    gap: 4,
+    padding: space.lg,
+    borderRadius: radius.lg,
+    borderCurve: 'continuous',
+    backgroundColor: color.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: color.borderStrong,
+  },
+  tileHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   linkCard: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   lot: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.border },
+  actions: { flexDirection: 'row', gap: space.sm },
 });

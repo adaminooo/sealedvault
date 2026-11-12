@@ -15,6 +15,7 @@ import { usePortfolioView } from '@/data/use-portfolio';
 import { useStoredState } from '@/data/use-stored-state';
 import { AppText, Card, Screen, color, radius, space, toneColor } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
+import { Icon } from '@/ui/icon';
 import { LineChart } from '@/ui/line-chart';
 
 const RANGES = { '1M': 30, '3M': 91, '6M': 182, '1R': 365, ALL: 1e6 } as const;
@@ -72,7 +73,8 @@ export default function AnalysisScreen() {
   if (!items.length) {
     return (
       <Screen>
-        <Card>
+        <Card style={{ alignItems: 'center', gap: space.sm, paddingVertical: space.xxl }}>
+          <Icon sf="chart.xyaxis.line" md="insights" size={30} color={color.accent2} />
           <AppText variant="heading">{t('Zatím není co analyzovat')}</AppText>
           <AppText color={color.muted}>{t('Přidej první produkt a uvidíš tu vývoj hodnoty, zisky a rozložení portfolia.')}</AppText>
         </Card>
@@ -213,7 +215,9 @@ export default function AnalysisScreen() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View style={{ gap: space.sm }}>
-      <AppText variant="heading">{title}</AppText>
+      <AppText variant="overline" color={color.muted} style={{ paddingHorizontal: space.xs }}>
+        {title}
+      </AppText>
       {children}
     </View>
   );

@@ -26,13 +26,15 @@ export function useFilters() {
  * Data hlavní obrazovky: položky vybraného portfolia po filtrech, pozice seřazené,
  * denní změny a křivka hodnoty za 90 dní (z historie cen).
  */
-export function usePortfolioView() {
+export function usePortfolioView(search = '') {
   const all = useCollection(itemsStore);
   const { active } = usePortfolios();
   const [filters] = useFilters();
 
   const pItems = useMemo(() => (active === ALL_ID ? all : all.filter((it) => portfolioOf(it) === active)), [all, active]);
-  const visible = useMemo(() => applyFilters(pItems, filters), [pItems, filters]);
+  // base = po filtrech (hlavní karta), visible = navíc po vyhledávání (seznam)
+  const base = useMemo(() => applyFilters(pItems, filters), [pItems, filters]);
+  const visible = useMemo(() => (search.trim() ? applyFilters(base, { ...filters, search }) : base), [base, filters, search]);
 
   const ids = useMemo(() => pItems.flatMap((i) => (i.cmProductId ? [i.cmProductId] : [])), [pItems]);
   const hist = useHistory(ids, isoDaysAgo(90)).data ?? null;
@@ -48,7 +50,7 @@ export function usePortfolioView() {
     return out;
   }, [hist]);
 
-  const trend = useMemo(() => holdingsTrend(hist, visible), [hist, visible]);
+  const trend = useMemo(() => holdingsTrend(hist, base), [hist, base]);
 
   const dayChangeOf = useCallback(
     (p: Position) => (p.stats.held && p.head.cmProductId ? changeAbs(p.stats.value, changes.get(p.head.cmProductId)?.d1 ?? null) : null),
@@ -61,7 +63,7 @@ export function usePortfolioView() {
     let abs = 0;
     let value = 0;
     let known = false;
-    for (const p of grouped) {
+    for (const p of groupPositions(base)) {
       value += p.stats.value;
       const c = dayChangeOf(p);
       if (c != null) {
@@ -70,7 +72,7 @@ export function usePortfolioView() {
       }
     }
     return known ? { abs, pct: value - abs > 0 ? (abs / (value - abs)) * 100 : 0 } : null;
-  }, [grouped, dayChangeOf]);
+  }, [base, dayChangeOf]);
 
-  return { all, pItems, visible, positions, changes, spark, trend, dayChange };
+  return { all, pItems, base, visible, positions, changes, spark, trend, dayChange };
 }

@@ -15,6 +15,7 @@ import { useCollection, wishlist as wishStore } from '@/db/store';
 import { AppText, Card, Screen, color, font, radius, space } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
 import { Field } from '@/ui/field';
+import { Icon } from '@/ui/icon';
 import { ProductThumb } from '@/ui/product-thumb';
 
 /** Wishlist: produkty, které chceš koupit, s cílovou cenou */
@@ -90,7 +91,8 @@ export default function WishlistScreen() {
       )}
 
       {list.length === 0 ? (
-        <Card>
+        <Card style={{ alignItems: 'center', gap: space.sm, paddingVertical: space.xxl }}>
+          <Icon sf="heart" md="favorite-border" size={30} color={color.accent2} />
           <AppText variant="heading">{t('Wishlist je prázdný')}</AppText>
           <AppText color={color.muted}>{t('Vyhledej produkt nahoře a přidej ho.')}</AppText>
         </Card>
@@ -162,11 +164,13 @@ function WishCard({ w, now, dist, currency }: { w: WishlistItem; now: number | n
       )}
       <View style={styles.actions}>
         <Pressable style={[styles.action, { backgroundColor: color.accent }]} onPress={() => router.push({ pathname: '/add', params: { wish: w.id } })} accessibilityRole="button">
+          <Icon sf="cart.fill" md="shopping-cart" size={14} color="#fff" />
           <AppText variant="label" color="#fff">
             {t('Koupeno')}
           </AppText>
         </Pressable>
         <Pressable style={styles.action} onPress={() => void wishStore.remove(w.id)} accessibilityRole="button">
+          <Icon sf="trash" md="delete-outline" size={14} color={color.muted} />
           <AppText variant="label" color={color.muted}>
             {t('Odebrat')}
           </AppText>
@@ -185,5 +189,5 @@ const styles = StyleSheet.create({
   track: { height: 6, borderRadius: radius.pill, backgroundColor: color.surface3, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: radius.pill },
   actions: { flexDirection: 'row', gap: space.sm, marginTop: space.xs },
-  action: { flex: 1, minHeight: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: color.surface2 },
+  action: { flex: 1, flexDirection: 'row', gap: 6, minHeight: 40, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', backgroundColor: color.surface2 },
 });
