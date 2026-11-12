@@ -11,7 +11,9 @@
     "ios": {
       "bundleIdentifier": "app.sealedvault",
       "supportsTablet": true,
-      "config": { "usesNonExemptEncryption": false }
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "app.sealedvault",
@@ -35,7 +37,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 120
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
