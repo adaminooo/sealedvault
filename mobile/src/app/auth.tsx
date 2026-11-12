@@ -29,11 +29,11 @@ export default function AuthScreen() {
     try {
       if (mode === 'signin') {
         await signIn(e, password);
-        router.back();
+        close();
       } else if (mode === 'signup') {
         const { needsConfirm } = await signUp(e, password);
         if (needsConfirm) setInfo(t('Hotovo! Poslali jsme ti e-mail – klikni na odkaz v něm a účet se aktivuje.'));
-        else router.back();
+        else close();
       } else {
         await resetPassword(e);
         setInfo(t('Pokud účet existuje, poslali jsme ti e-mail s odkazem pro nastavení nového hesla.'));
@@ -112,3 +112,8 @@ const styles = StyleSheet.create({
   segItem: { flex: 1, alignItems: 'center', paddingVertical: space.sm + 2, borderRadius: 10 },
   segActive: { backgroundColor: color.surface3 },
 });
+
+function close() {
+  if (router.canGoBack()) router.back();
+  else router.replace('/account');
+}

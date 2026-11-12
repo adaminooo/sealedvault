@@ -14,7 +14,7 @@ import { useMarket } from '@/data/queries';
 import { usePortfolios } from '@/data/use-portfolio';
 import { useSetCatalog } from '@/data/use-set-catalog';
 import { useStoredState } from '@/data/use-stored-state';
-import { items as itemsStore, useCollection } from '@/db/store';
+import { items as itemsStore, useCollection, wishlist as wishStore } from '@/db/store';
 import { AppText, Button, Card, color, radius, space } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
 import { DateField } from '@/ui/date-field';
@@ -24,16 +24,23 @@ import { Stepper } from '@/ui/stepper';
 
 /**
  * Přidání nákupu / úprava nákupu.
+ *  - ?wish=<id>: koupený produkt z wishlistu
  *  - bez parametrů: nový produkt (hlavní cesta = vyhledání na trhu)
  *  - ?from=<pozice>: další nákup stejného produktu
  *  - ?id=<nákup>: úprava existujícího nákupu (+ smazání)
  */
 export default function AddScreen() {
-  const { id, from } = useLocalSearchParams<{ id?: string; from?: string }>();
+  const { id, from, wish } = useLocalSearchParams<{ id?: string; from?: string; wish?: string }>();
+  const wishes = useCollection(wishStore);
   const all = useCollection(itemsStore);
   const editing = id ? all.find((x) => x.id === id) : undefined;
   const template = from ? groupPositions(all).find((p) => p.key === from)?.head : undefined;
-  const base = editing ?? template;
+  // „Koupeno“ z wishlistu: předvyplněný produkt
+  const w = wish ? wishes.find((x) => x.id === wish) : undefined;
+  const fromWish: (Partial<PortfolioItem> & Pick<PortfolioItem, 'game' | 'name' | 'set' | 'type'>) | undefined = w
+    ? { game: w.game, name: w.name, set: w.set, type: w.type, cmProductId: w.cmProductId, productImage: w.productImage }
+    : undefined;
+  const base = editing ?? template ?? fromWish;
 
   const market = useMarket().data ?? null;
   const [currency] = useStoredState<Currency>('currency', 'CZK');
