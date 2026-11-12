@@ -1,10 +1,12 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 
 import { t } from '@/core/i18n';
+import { useAutoPrices } from '@/data/use-auto-prices';
 import { color } from '@/ui';
 
 /** Spodní lišta záložek – na iOS 26 systémové „liquid glass“, na Androidu Material */
 export default function TabsLayout() {
+  useAutoPrices();
   return (
     <NativeTabs tintColor={color.accent} minimizeBehavior="onScrollDown">
       <NativeTabs.Trigger name="(portfolio)">

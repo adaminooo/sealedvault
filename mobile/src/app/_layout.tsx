@@ -65,6 +65,10 @@ export default function RootLayout() {
           name="sell/[key]"
           options={{ title: t('Prodat'), presentation: 'formSheet', sheetGrabberVisible: true, sheetAllowedDetents: [0.6], contentStyle: { backgroundColor: color.surface } }}
         />
+        <Stack.Screen
+          name="sort"
+          options={{ title: t('Řazení'), presentation: 'formSheet', sheetGrabberVisible: true, sheetAllowedDetents: [0.55, 1], contentStyle: { backgroundColor: color.surface } }}
+        />
         <Stack.Screen name="auth" options={{ title: t('Účet'), presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
