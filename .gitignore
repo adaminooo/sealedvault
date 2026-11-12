@@ -12,3 +12,6 @@ dist
 
 # lokální nastavení Claude
 .claude
+
+# dočasné soubory Supabase CLI
+supabase/.temp
