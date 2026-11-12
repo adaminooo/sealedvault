@@ -1,6 +1,7 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import type { PriceChange } from '@/core/changes';
@@ -9,7 +10,9 @@ import { t } from '@/core/i18n';
 import type { Position } from '@/core/portfolio';
 import type { Currency } from '@/core/types';
 import { items as itemsStore } from '@/db/store';
-import { AppText, color, font, radius, space, toneColor } from '@/ui';
+import { AppText, color, font, gameColor, radius, space, toneColor } from '@/ui';
+import { Glow } from '@/ui/glow';
+import { TrendPill } from '@/ui/pill';
 import { ProductThumb } from '@/ui/product-thumb';
 
 export type ItemProps = { p: Position; first?: boolean; last?: boolean; currency: Currency; change?: PriceChange; spark?: number[]; marketUrl?: string };
@@ -29,8 +32,8 @@ function confirmDelete(p: Position) {
   ]);
 }
 
-/** Odkaz na detail + dlouhé podržení: náhled a rychlé akce (to web nemá) */
-function Linked({ p, marketUrl, children }: { p: Position; marketUrl?: string; children: (pressed: boolean) => React.ReactNode }) {
+/** Odkaz na detail + dlouhé podržení: náhled a rychlé akce */
+function Linked({ p, marketUrl, children }: { p: Position; marketUrl?: string; children: (pressed: boolean) => ReactNode }) {
   return (
     <Link href={{ pathname: '/product/[key]', params: { key: p.key } }} asChild>
       <Link.Trigger>
@@ -47,53 +50,63 @@ function Linked({ p, marketUrl, children }: { p: Position; marketUrl?: string; c
   );
 }
 
-/** Štítek s počtem kusů přes roh obrázku (jako na webu) */
-function QtyBadge({ n }: { n: number }) {
+/** Obrázek produktu na jemném podkladu v barvě hry, s počtem kusů */
+function Media({ p, size }: { p: Position; size: number }) {
+  const tint = gameColor[p.game][0];
   return (
-    <View style={styles.qty}>
-      <AppText style={styles.qtyText} tabular>
-        {n}×
-      </AppText>
+    <View style={[styles.media, { width: size + 8, height: size + 8, borderRadius: (size + 8) * 0.28 }]}>
+      <LinearGradient colors={[`${tint}26`, `${tint}08`]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      <ProductThumb item={p.head} size={size} />
+      <View style={styles.qty}>
+        <AppText style={styles.qtyText} tabular>
+          {p.stats.held}×
+        </AppText>
+      </View>
     </View>
   );
 }
 
-/** Řádek seznamu: obrázek s počtem, název + edice, vpravo hodnota, zisk a cena za kus */
-export const PositionRow = memo(function PositionRow({ p, first, last, currency, change, marketUrl }: ItemProps) {
+/**
+ * Řádek seznamu jako samostatná karta:
+ *  vlevo obrázek s počtem kusů, uprostřed název, hra · edice a cena za kus (+ dnešní změna),
+ *  vpravo hodnota, zisk v % (štítek) a zisk v Kč.
+ */
+export const PositionRow = memo(function PositionRow({ p, currency, change, marketUrl }: ItemProps) {
   const d1 = change?.d1;
   const tn = tone(p.stats.profit);
   return (
     <Linked p={p} marketUrl={marketUrl}>
       {(pressed) => (
-        <View style={[styles.row, first && styles.first, last && styles.last, !first && styles.divider, pressed && { backgroundColor: color.surface2 }]}>
-          <View>
-            <ProductThumb item={p.head} size={50} />
-            <QtyBadge n={p.stats.held} />
-          </View>
-          <View style={{ flex: 1, gap: 3 }}>
+        <View style={[styles.row, pressed && styles.pressed]}>
+          <Media p={p} size={48} />
+          <View style={styles.middle}>
             <AppText variant="label" numberOfLines={2} style={{ fontFamily: font.semibold }}>
               {p.name}
             </AppText>
-            <View style={styles.sub}>
+            <View style={styles.meta}>
+              <View style={[styles.dot, { backgroundColor: gameColor[p.game][0] }]} />
               <AppText variant="caption" color={color.muted} numberOfLines={1} style={{ flexShrink: 1 }}>
                 {p.head.set || t(p.head.type)}
               </AppText>
+            </View>
+            <View style={[styles.meta, styles.wrap]}>
+              <AppText variant="caption" tabular color={color.faint} numberOfLines={1}>
+                {money(p.head.currentPrice, currency)}/{t('ks')}
+              </AppText>
               {d1 != null && Math.abs(d1) >= 0.05 ? (
                 <AppText variant="caption" tabular color={toneColor[tone(d1)]}>
-                  {pct(d1)}
+                  {t('dnes')} {pct(d1)}
                 </AppText>
               ) : null}
             </View>
           </View>
-          <View style={{ alignItems: 'flex-end', gap: 2 }}>
-            <AppText variant="bodyStrong" tabular>
+          <View style={styles.right}>
+            <AppText style={styles.value} tabular numberOfLines={1}>
               {money(p.stats.value, currency)}
             </AppText>
-            <AppText variant="caption" tabular color={toneColor[tn]}>
-              {signedMoney(p.stats.profit, currency)} {pct(p.stats.profitPct)}
-            </AppText>
-            <AppText variant="caption" tabular color={color.faint}>
-              {p.stats.held} × {money(p.head.currentPrice, currency)}
+            <TrendPill small tone={tn} label={pct(p.stats.profitPct).replace(/^[+−-]/, '')} />
+            <AppText variant="caption" tabular color={toneColor[tn]} numberOfLines={1}>
+              {signedMoney(p.stats.profit, currency)}
             </AppText>
           </View>
         </View>
@@ -102,69 +115,74 @@ export const PositionRow = memo(function PositionRow({ p, first, last, currency,
   );
 });
 
-/** Dlaždice mřížky: velký obrázek, název, hodnota a zisk */
+/** Dlaždice mřížky: velký obrázek se září v barvě hry, název, hodnota a zisk */
 export const PositionCard = memo(function PositionCard({ p, currency, marketUrl }: ItemProps) {
   const tn = tone(p.stats.profit);
   return (
     <Linked p={p} marketUrl={marketUrl}>
       {(pressed) => (
-        <View style={[styles.card, pressed && { transform: [{ scale: 0.98 }], backgroundColor: color.surface2 }]}>
+        <View style={[styles.card, pressed && styles.pressed]}>
           <View style={styles.cardMedia}>
-            <ProductThumb item={p.head} size={112} />
-            <QtyBadge n={p.stats.held} />
+            <Glow size={170} color={gameColor[p.game][0]} opacity={0.22} style={{ alignSelf: 'center', top: -25 }} />
+            <ProductThumb item={p.head} size={104} />
+            <View style={[styles.qty, styles.cardQty]}>
+              <AppText style={styles.qtyText} tabular>
+                {p.stats.held}×
+              </AppText>
+            </View>
           </View>
-          <AppText variant="caption" numberOfLines={2} style={{ fontFamily: font.semibold, minHeight: 34 }}>
+          <AppText variant="caption" numberOfLines={2} style={{ fontFamily: font.semibold, color: color.text, minHeight: 34 }}>
             {p.name}
           </AppText>
-          <AppText variant="bodyStrong" tabular>
-            {money(p.stats.value, currency)}
-          </AppText>
-          <AppText variant="caption" tabular color={toneColor[tn]}>
-            {pct(p.stats.profitPct)}
-          </AppText>
+          <View style={styles.cardFoot}>
+            <AppText style={styles.cardValue} tabular numberOfLines={1} adjustsFontSizeToFit>
+              {money(p.stats.value, currency)}
+            </AppText>
+            <TrendPill small tone={tn} label={pct(p.stats.profitPct).replace(/^[+−-]/, '')} />
+          </View>
         </View>
       )}
     </Linked>
   );
 });
 
+const cardBase = {
+  borderRadius: radius.lg,
+  borderCurve: 'continuous' as const,
+  backgroundColor: '#0f0f16',
+  borderWidth: StyleSheet.hairlineWidth,
+  borderColor: 'rgba(255,255,255,0.1)',
+  boxShadow: '0 12px 28px -18px rgba(0,0,0,0.9)',
+};
+
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    padding: space.md,
-    backgroundColor: color.surface,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderColor: color.borderStrong,
-  },
-  first: { borderTopWidth: StyleSheet.hairlineWidth, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
-  last: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
-  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.border },
-  sub: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  row: { ...cardBase, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, marginBottom: space.sm + 2 },
+  pressed: { backgroundColor: '#16161f', transform: [{ scale: 0.985 }] },
+  media: { alignItems: 'center', justifyContent: 'center', overflow: 'visible', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.08)' },
+  middle: { flex: 1, minWidth: 0, gap: 3 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  dot: { width: 6, height: 6, borderRadius: 3 },
+  wrap: { flexWrap: 'wrap', columnGap: 8, rowGap: 0 },
+  right: { alignItems: 'flex-end', gap: 4, maxWidth: '38%' },
+  value: { fontFamily: font.displayBold, fontSize: 17, letterSpacing: -0.4, color: color.text },
   qty: {
     position: 'absolute',
-    left: -4,
-    bottom: -4,
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 8,
-    backgroundColor: '#1f1f2a',
-    borderWidth: 1.5,
-    borderColor: color.bg,
+    right: -6,
+    bottom: -6,
+    minWidth: 24,
+    paddingHorizontal: 6,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: color.text,
+    borderWidth: 2,
+    borderColor: '#0f0f16',
   },
-  qtyText: { fontFamily: 'Inter_700Bold', fontSize: 11, lineHeight: 14, color: color.text },
-  card: {
-    flex: 1,
-    gap: 4,
-    padding: space.md,
-    margin: space.xs + 2,
-    borderRadius: radius.lg,
-    borderCurve: 'continuous',
-    backgroundColor: color.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: color.borderStrong,
-  },
-  cardMedia: { alignSelf: 'center', marginBottom: space.xs },
+  qtyText: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 11, lineHeight: 13, color: color.bg },
+  card: { ...cardBase, flex: 1, gap: space.sm, padding: space.md, margin: space.xs + 1, overflow: 'hidden' },
+  cardMedia: { height: 120, alignItems: 'center', justifyContent: 'center' },
+  cardQty: { right: 0, bottom: 4 },
+  cardFoot: { gap: 4 },
+  cardValue: { fontFamily: font.displayBold, fontSize: 17, letterSpacing: -0.4, color: color.text },
 });

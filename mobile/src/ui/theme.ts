@@ -33,13 +33,13 @@ export const gradient = {
 };
 
 /**
- * Barvy her – z palety projektu (zlatá, značková fialová, tyrkysová z loga),
+ * Barvy her – ze stejných tónů jako logo (levandulová, značková modrá, tyrkysová),
  * aby grafy a štítky ladily s ostatním vzhledem. [hlavní barva, přechod od, přechod do]
  */
 export const gameColor = {
-  'Pokémon': ['#ffc65c', '#ffd978', '#ffb547'],
-  'One Piece': ['#9b7bff', '#a99dff', '#6d5cff'],
-  Riftbound: ['#2de2e6', '#5ff0ee', '#139fb8'],
+  'Pokémon': ['#b8a9ff', '#c4b5ff', '#8f6bff'],
+  'One Piece': ['#5b86ff', '#7a9bff', '#3d5fe0'],
+  Riftbound: ['#2dd4d8', '#8ef6f2', '#139fb8'],
 } as const;
 
 export const radius = { lg: 20, md: 16, sm: 12, pill: 999 } as const;
