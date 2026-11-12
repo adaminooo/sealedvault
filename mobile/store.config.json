@@ -1,0 +1,50 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "copyright": "2026 SealedVault",
+    "categories": ["FINANCE", "UTILITIES"],
+    "info": {
+      "cs": {
+        "title": "SealedVault – TCG portfolio",
+        "subtitle": "Hodnota sealed produktů",
+        "description": "SealedVault hlídá hodnotu tvé sbírky sealed TCG produktů – Pokémon, One Piece i Riftbound.\n\nCeny se každý den samy aktualizují z Cardmarketu a TCGplayeru, takže vždy víš, kolik tvoje boxy, ETB a kolekce stojí a kolik jsi na nich vydělal.\n\nCO UMÍ\n• Přehled portfolia: hodnota, zisk celkem i za den, vývoj za 90 dní\n• Rozložení podle her a koncentrace rizika\n• Detail produktu s historií ceny až od roku 2024 a dotykovým grafem\n• Nákupy po dávkách, prodeje (FIFO) a realizovaný zisk\n• Analýza: roční zhodnocení (XIRR), nejlepší a nejslabší kusy, likvidační hodnota\n• Wishlist s cílovou cenou\n• Cenové alerty jako upozornění do telefonu\n• Fotky a stav každého kusu\n• Účet: stejné portfolio na telefonu i na počítači (web)\n• Funguje i offline, data jsou uložená v telefonu\n\nBez reklam a bez sledování. Ceny jsou orientační podle veřejných tržišť.",
+        "keywords": ["pokemon", "one piece", "riftbound", "tcg", "sealed", "booster box", "etb", "sbírka", "portfolio", "cardmarket", "ceny", "investice"],
+        "releaseNotes": "První verze SealedVault pro iPhone.",
+        "privacyPolicyUrl": "https://adaminooo.github.io/sealedvault/privacy.html",
+        "supportUrl": "https://adaminooo.github.io/sealedvault/",
+        "marketingUrl": "https://adaminooo.github.io/sealedvault/"
+      },
+      "en-US": {
+        "title": "SealedVault – TCG portfolio",
+        "subtitle": "Track sealed product value",
+        "description": "SealedVault tracks the value of your sealed TCG collection – Pokémon, One Piece and Riftbound.\n\nPrices update automatically every day from Cardmarket and TCGplayer, so you always know what your booster boxes, ETBs and collections are worth and how much you've made.\n\nFEATURES\n• Portfolio overview: value, total and daily gain, 90-day trend\n• Allocation by game and concentration risk\n• Product detail with price history back to 2024 and a touch chart\n• Purchases by lot, sales (FIFO) and realized profit\n• Analytics: annual return (XIRR), best and worst items, liquidation value\n• Wishlist with target prices\n• Price alerts as push notifications\n• Photos and condition for every item\n• Account: the same portfolio on your phone and on the web\n• Works offline, data is stored on your phone\n\nNo ads, no tracking. Prices are indicative, based on public marketplaces.",
+        "keywords": ["pokemon", "one piece", "riftbound", "tcg", "sealed", "booster box", "etb", "collection", "portfolio", "cardmarket", "price", "tracker"],
+        "releaseNotes": "The first SealedVault release for iPhone.",
+        "privacyPolicyUrl": "https://adaminooo.github.io/sealedvault/privacy.html",
+        "supportUrl": "https://adaminooo.github.io/sealedvault/",
+        "marketingUrl": "https://adaminooo.github.io/sealedvault/"
+      }
+    },
+    "advisory": {
+      "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+      "gamblingSimulated": "NONE",
+      "medicalOrTreatmentInformation": "NONE",
+      "profanityOrCrudeHumor": "NONE",
+      "sexualContentGraphicAndNudity": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "horrorOrFearThemes": "NONE",
+      "matureOrSuggestiveThemes": "NONE",
+      "violenceCartoonOrFantasy": "NONE",
+      "violenceRealistic": "NONE",
+      "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "contests": "NONE",
+      "gambling": false,
+      "unrestrictedWebAccess": false,
+      "seventeenPlus": false
+    },
+    "release": {
+      "automaticRelease": false,
+      "phasedRelease": true
+    }
+  }
+}

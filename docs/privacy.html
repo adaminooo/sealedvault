@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Zásady ochrany soukromí · SealedVault</title>
+<style>
+  :root { color-scheme: dark; --bg: #050507; --surface: #0d0d12; --text: #f5f5f7; --muted: #9a9aad; --accent: #a99dff; --border: rgba(255,255,255,.1); }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -.02em; }
+  h2 { font-size: 19px; margin: 32px 0 8px; }
+  p, li { color: #d6d6e0; }
+  .muted { color: var(--muted); font-size: 14px; }
+  a { color: var(--accent); }
+  .brand span { color: var(--accent); }
+  hr { border: none; border-top: 1px solid var(--border); margin: 48px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  td, th { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <p class="brand"><b>Sealed<span>Vault</span></b></p>
+  <h1>Zásady ochrany soukromí</h1>
+  <p class="muted">Platí pro mobilní aplikaci SealedVault (iOS, Android) a webovou verzi. Účinné od 13. 11. 2026.</p>
+
+  <h2>Krátce</h2>
+  <ul>
+    <li>Bez účtu zůstávají všechna data jen v tvém zařízení.</li>
+    <li>S účtem se tvoje portfolio ukládá na server, aby bylo stejné na telefonu i na počítači. Vidíš ho jen ty.</li>
+    <li>Nezobrazujeme reklamy, nesledujeme tě napříč aplikacemi a data neprodáváme ani nesdílíme pro marketing.</li>
+    <li>Účet i všechna data na serveru můžeš kdykoli smazat přímo v aplikaci.</li>
+  </ul>
+
+  <h2>Jaké údaje zpracováváme</h2>
+  <table>
+    <tr><th>Údaj</th><th>K čemu</th><th>Kde je uložený</th></tr>
+    <tr><td>E-mail a heslo (jen s účtem)</td><td>přihlášení, potvrzení účtu, obnova hesla</td><td>Supabase (EU – Frankfurt); heslo jen jako zabezpečený otisk</td></tr>
+    <tr><td>Portfolio, wishlist, nastavení portfolií, poznámky a fotky, které přidáš</td><td>zobrazení a výpočty v aplikaci; s účtem synchronizace mezi zařízeními</td><td>v zařízení; s účtem také Supabase (EU – Frankfurt)</td></tr>
+    <tr><td>Token pro upozornění (jen když je zapneš)</td><td>doručení cenových alertů do telefonu</td><td>Supabase (EU); doručení přes službu Expo Push (Apple / Google)</td></tr>
+  </table>
+  <p>Aplikace nesbírá polohu, kontakty, reklamní identifikátory ani analytiku chování. Přístup k fotoaparátu a fotkám se používá jen tehdy, když sám přidáš fotku produktu.</p>
+
+  <h2>Ceny z trhů</h2>
+  <p>Aplikace stahuje denní ceny produktů a kurzy ČNB jako veřejné soubory z webu SealedVault (GitHub Pages). Při tom se neodesílají žádné tvoje údaje. Odkazy na Cardmarket a TCGplayer se otevírají v prohlížeči podle pravidel těchto služeb.</p>
+
+  <h2>Zpracovatelé</h2>
+  <ul>
+    <li><b>Supabase</b> – databáze a přihlášení (servery v EU).</li>
+    <li><b>Expo (650 Industries)</b> – doručení push upozornění přes Apple Push Notification service a Firebase Cloud Messaging.</li>
+    <li><b>GitHub Pages</b> – hosting webu a veřejných cenových dat.</li>
+  </ul>
+
+  <h2>Jak dlouho údaje uchováváme</h2>
+  <p>Data účtu uchováváme, dokud účet nesmažeš. Smazáním účtu (Účet → Smazat účet) se okamžitě odstraní účet, portfolio, wishlist, nastavení a tokeny upozornění ze serveru. Data v tvém zařízení zůstanou, dokud aplikaci neodinstaluješ.</p>
+
+  <h2>Tvoje práva</h2>
+  <p>Podle GDPR máš právo na přístup k údajům, jejich opravu, výmaz, omezení zpracování a přenositelnost. Export všech dat najdeš v aplikaci (Účet → Exportovat zálohu). Máš také právo podat stížnost u Úřadu pro ochranu osobních údajů (uoou.cz).</p>
+
+  <h2>Děti</h2>
+  <p>Aplikace není určená dětem mladším 13 let a vědomě od nich údaje nesbíráme.</p>
+
+  <h2>Kontakt</h2>
+  <p>Dotazy k soukromí posílej na <a href="mailto:sealedvault.support@gmail.com">sealedvault.support@gmail.com</a>.</p>
+
+  <hr />
+
+  <h1 lang="en">Privacy Policy</h1>
+  <p class="muted" lang="en">Applies to the SealedVault mobile app (iOS, Android) and the web version. Effective 13 Nov 2026.</p>
+  <div lang="en">
+    <h2>In short</h2>
+    <ul>
+      <li>Without an account, all data stays on your device only.</li>
+      <li>With an account, your portfolio is stored on a server so it's the same on your phone and computer. Only you can see it.</li>
+      <li>No ads, no cross-app tracking, and we never sell or share your data for marketing.</li>
+      <li>You can delete your account and all server data at any time right in the app.</li>
+    </ul>
+    <h2>Data we process</h2>
+    <ul>
+      <li><b>Email and password</b> (account only) – sign-in, confirmation and password reset; stored with Supabase (EU – Frankfurt), the password only as a secure hash.</li>
+      <li><b>Portfolio, wishlist, portfolio settings, notes and photos you add</b> – shown and calculated in the app; with an account also synced via Supabase (EU).</li>
+      <li><b>Push token</b> (only if you enable alerts) – to deliver price alerts; stored with Supabase (EU), delivered via Expo Push (Apple / Google).</li>
+    </ul>
+    <p>The app does not collect location, contacts, advertising identifiers or behavioural analytics. Camera and photo access are used only when you add a product photo.</p>
+    <h2>Market prices</h2>
+    <p>Daily prices and exchange rates are downloaded as public files from the SealedVault website (GitHub Pages); none of your data is sent.</p>
+    <h2>Processors</h2>
+    <p>Supabase (database and authentication, EU servers), Expo / 650 Industries (push delivery via APNs and FCM), GitHub Pages (website and public price data).</p>
+    <h2>Retention and deletion</h2>
+    <p>Account data is kept until you delete your account (Account → Delete account), which immediately removes the account, portfolio, wishlist, settings and push tokens from the server. Data on your device remains until you uninstall the app.</p>
+    <h2>Your rights</h2>
+    <p>Under the GDPR you have the right to access, rectify, erase, restrict and port your data. You can export all data in the app (Account → Export backup) and lodge a complaint with your data protection authority.</p>
+    <h2>Children</h2>
+    <p>The app is not intended for children under 13.</p>
+    <h2>Contact</h2>
+    <p><a href="mailto:sealedvault.support@gmail.com">sealedvault.support@gmail.com</a></p>
+  </div>
+</main>
+</body>
+</html>
