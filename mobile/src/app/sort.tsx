@@ -20,7 +20,7 @@ export default function SortSheet() {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.sm }}>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: space.lg, gap: space.sm }}>
       {(Object.keys(SORT_FIELDS) as SortField[]).map((field) => {
         const labels = dirLabels(field);
         return (

@@ -15,7 +15,7 @@ import { usePortfolios } from '@/data/use-portfolio';
 import { useSetCatalog } from '@/data/use-set-catalog';
 import { useStoredState } from '@/data/use-stored-state';
 import { items as itemsStore, useCollection, wishlist as wishStore } from '@/db/store';
-import { AppText, Button, Card, color, radius, space } from '@/ui';
+import { AppText, Button, Card, color, font, gameColor, radius, space } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
 import { DateField } from '@/ui/date-field';
 import { Field } from '@/ui/field';
@@ -220,13 +220,37 @@ export default function AddScreen() {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}>
       <Stack.Screen options={{ title: editing ? t('Upravit nákup') : template ? t('Další nákup') : t('Přidat produkt') }} />
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
         {!base && (
-          <ChipRow>
-            {GAMES.map((g) => (
-              <Chip key={g} label={g} active={g === game} onPress={() => (setGame(g), setCmId(undefined), setQuery(''))} />
-            ))}
-          </ChipRow>
+          <View style={{ gap: space.sm }}>
+            <AppText variant="label" color={color.muted}>
+              {t('Hra')}
+            </AppText>
+            <View style={styles.games}>
+              {GAMES.map((g) => {
+                const on = g === game;
+                const tint = gameColor[g][0];
+                return (
+                  <Pressable
+                    key={g}
+                    onPress={() => {
+                      if (process.env.EXPO_OS === 'ios') void Haptics.selectionAsync();
+                      setGame(g);
+                      setCmId(undefined);
+                      setQuery('');
+                    }}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: on }}
+                    style={[styles.game, on && { borderColor: tint, backgroundColor: `${tint}1f` }]}>
+                    <View style={[styles.gameDot, { backgroundColor: tint, opacity: on ? 1 : 0.55 }]} />
+                    <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit color={on ? color.text : color.muted} style={{ fontFamily: font.semibold }}>
+                      {g}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
         )}
 
         {!chosen ? (
@@ -419,5 +443,19 @@ const styles = StyleSheet.create({
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.border },
   picked: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  games: { flexDirection: 'row', gap: space.sm },
+  game: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: space.md,
+    paddingHorizontal: space.xs,
+    borderRadius: radius.md,
+    borderCurve: 'continuous',
+    borderWidth: 1,
+    borderColor: color.borderStrong,
+    backgroundColor: color.surface2,
+  },
+  gameDot: { width: 10, height: 10, borderRadius: 5 },
   delete: { minHeight: 50, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md },
 });

@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { Link, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { memo, type ReactNode } from 'react';
@@ -50,12 +49,10 @@ function Linked({ p, marketUrl, children }: { p: Position; marketUrl?: string; c
   );
 }
 
-/** Obrázek produktu na jemném podkladu v barvě hry, s počtem kusů */
+/** Obrázek produktu (jednotné zaoblení) se štítkem počtu kusů */
 function Media({ p, size }: { p: Position; size: number }) {
-  const tint = gameColor[p.game][0];
   return (
-    <View style={[styles.media, { width: size + 8, height: size + 8, borderRadius: (size + 8) * 0.28 }]}>
-      <LinearGradient colors={[`${tint}26`, `${tint}08`]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+    <View>
       <ProductThumb item={p.head} size={size} />
       <View style={styles.qty}>
         <AppText style={styles.qtyText} tabular>
@@ -78,7 +75,7 @@ export const PositionRow = memo(function PositionRow({ p, currency, change, mark
     <Linked p={p} marketUrl={marketUrl}>
       {(pressed) => (
         <View style={[styles.row, pressed && styles.pressed]}>
-          <Media p={p} size={48} />
+          <Media p={p} size={56} />
           <View style={styles.middle}>
             <AppText variant="label" numberOfLines={2} style={{ fontFamily: font.semibold }}>
               {p.name}
@@ -158,7 +155,6 @@ const cardBase = {
 const styles = StyleSheet.create({
   row: { ...cardBase, flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, marginBottom: space.sm + 2 },
   pressed: { backgroundColor: '#16161f', transform: [{ scale: 0.985 }] },
-  media: { alignItems: 'center', justifyContent: 'center', overflow: 'visible', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.08)' },
   middle: { flex: 1, minWidth: 0, gap: 3 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   dot: { width: 6, height: 6, borderRadius: 3 },

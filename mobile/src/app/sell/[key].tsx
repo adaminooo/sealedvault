@@ -63,7 +63,7 @@ export default function SellScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={process.env.EXPO_OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
         <AppText color={color.muted}>{t('Prodáváš z {0} – držíš {1} ks. Kusy se odečtou od nejstarších nákupů.', p.name, held)}</AppText>
 
         <Card style={{ gap: space.lg }}>

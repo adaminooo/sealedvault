@@ -20,7 +20,7 @@ export const ProductThumb = memo(function ProductThumb({ item, size = 48 }: { it
   return (
     <View style={[styles.box, { width: size, height: size, borderRadius: size * 0.25 }]}>
       {uri ? (
-        <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="contain" transition={process.env.EXPO_OS === 'web' ? 0 : 150} recyclingKey={uri} accessibilityIgnoresInvertColors />
+        <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" transition={process.env.EXPO_OS === 'web' ? 0 : 150} recyclingKey={uri} accessibilityIgnoresInvertColors />
       ) : (
         <View style={[StyleSheet.absoluteFill, styles.center, { backgroundColor: tint + '26' }]}>
           <AppText style={{ fontFamily: font.displayBold, fontSize: size * 0.4 }} color={tint}>
@@ -28,6 +28,7 @@ export const ProductThumb = memo(function ProductThumb({ item, size = 48 }: { it
           </AppText>
         </View>
       )}
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.edge, { borderRadius: size * 0.25 }]} />
     </View>
   );
 });
@@ -35,4 +36,6 @@ export const ProductThumb = memo(function ProductThumb({ item, size = 48 }: { it
 const styles = StyleSheet.create({
   box: { overflow: 'hidden', backgroundColor: color.surface2, borderCurve: 'continuous' },
   center: { alignItems: 'center', justifyContent: 'center' },
+  // jemný okraj ve stejném zaoblení jako obrázek (sjednotí bílé fotky s tmavým pozadím)
+  edge: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.14)', borderCurve: 'continuous' },
 });
