@@ -32,11 +32,14 @@ export const gradient = {
   gold: ['#ffd978', '#ffb547'] as const,
 };
 
-/** Barvy her */
+/**
+ * Barvy her – z palety projektu (zlatá, značková fialová, tyrkysová z loga),
+ * aby grafy a štítky ladily s ostatním vzhledem. [hlavní barva, přechod od, přechod do]
+ */
 export const gameColor = {
-  pokemon: '#b08a0c',
-  onepiece: '#d0517a',
-  riftbound: '#2b9fd6',
+  'Pokémon': ['#ffc65c', '#ffd978', '#ffb547'],
+  'One Piece': ['#9b7bff', '#a99dff', '#6d5cff'],
+  Riftbound: ['#2de2e6', '#5ff0ee', '#139fb8'],
 } as const;
 
 export const radius = { lg: 20, md: 16, sm: 12, pill: 999 } as const;

@@ -5,12 +5,12 @@ import { StyleSheet, View } from 'react-native';
 import type { Game, PortfolioItem } from '@/core/types';
 
 import { AppText } from './text';
-import { color, font } from './theme';
+import { color, font, gameColor } from './theme';
 
 export const GAME_COLOR: Record<Game, string> = {
-  'Pokémon': '#b08a0c',
-  'One Piece': '#d0517a',
-  Riftbound: '#2b9fd6',
+  'Pokémon': gameColor['Pokémon'][0],
+  'One Piece': gameColor['One Piece'][0],
+  Riftbound: gameColor.Riftbound[0],
 };
 
 /** Obrázek produktu (fotka z TCGplayeru / vlastní), jinak barevná dlaždice s iniciálou hry */
