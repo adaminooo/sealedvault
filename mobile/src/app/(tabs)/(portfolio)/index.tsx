@@ -1,32 +1,40 @@
 import { FlashList } from '@shopify/flash-list';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Link, router, Stack } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
-import { memo, useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
+import { router, Stack } from 'expo-router';
+import { useMemo, useState } from 'react';
+import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { totalStats } from '@/core/calc';
-import type { PriceChange } from '@/core/changes';
 import { dirLabels, parseSort, SORT_FIELDS, type SortField } from '@/core/filters';
-import { date, money, pct, signedMoney, tone } from '@/core/format';
 import { t } from '@/core/i18n';
 import { productUrl } from '@/core/market';
-import type { Position } from '@/core/portfolio';
-import { ALL_ID } from '@/core/portfolios';
+import { ALL_ID, portfolioOf } from '@/core/portfolios';
 import { GAMES, type Currency } from '@/core/types';
 import { useMarket } from '@/data/queries';
 import { useFilters, usePortfolios, usePortfolioView } from '@/data/use-portfolio';
 import { useStoredState } from '@/data/use-stored-state';
-import { items as itemsStore } from '@/db/store';
-import { AppText, Button, Card, color, font, radius, space, toneColor } from '@/ui';
-import { AnimatedNumber } from '@/ui/animated-number';
+import { Allocation } from '@/screens/portfolio/allocation';
+import { PortfolioHero } from '@/screens/portfolio/hero';
+import { MarketBar } from '@/screens/portfolio/market-bar';
+import { PositionCard, PositionRow } from '@/screens/portfolio/position-item';
+import { AppText, Button, Card, color, radius, space } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
 import { Icon } from '@/ui/icon';
-import { TrendPill } from '@/ui/pill';
-import { ProductThumb } from '@/ui/product-thumb';
-import { Sparkline, WideSparkline } from '@/ui/sparkline';
 
 const IOS = process.env.EXPO_OS === 'ios';
+type ListView = 'list' | 'grid';
+
+/** Značka v hlavičce (jako na webu): logo + Sealed + fialové Vault */
+function Brand() {
+  return (
+    <View style={styles.brand}>
+      <Image source={require('@/assets/images/icon.png')} style={styles.logo} />
+      <AppText style={styles.brandText}>
+        Sealed<AppText style={[styles.brandText, { color: color.accent2 }]}>Vault</AppText>
+      </AppText>
+    </View>
+  );
+}
 
 export default function PortfolioScreen() {
   const market = useMarket();
@@ -35,12 +43,13 @@ export default function PortfolioScreen() {
   const pf = usePortfolios();
   const [filters, setFilters] = useFilters();
   const [currency] = useStoredState<Currency>('currency', 'CZK');
+  const [listView, setListView] = useStoredState<ListView>('view', 'list');
   const stats = useMemo(() => totalStats(view.base), [view.base]);
-  const games = useMemo(() => GAMES.filter((g) => view.pItems.some((i) => i.game === g)), [view.pItems]);
   const sort = parseSort(filters.sort);
   const m = market.data;
-  const fmt = (n: number) => money(n, currency);
-  const trendUp = view.trend ? view.trend[view.trend.length - 1] >= view.trend[0] : true;
+  const grid = listView === 'grid';
+  const urlOf = (id?: number) => (id && m?.byId.get(id) ? productUrl(m.byId.get(id)!) : undefined);
+  const countIn = (id: string) => new Set(view.all.filter((i) => portfolioOf(i) === id).map((i) => i.cmProductId ?? i.name)).size;
 
   const header = (
     <View style={{ gap: space.lg, paddingBottom: space.md }}>
@@ -48,85 +57,61 @@ export default function PortfolioScreen() {
         <ChipRow>
           <Chip label={t('Vše')} active={pf.active === ALL_ID} onPress={() => pf.setActive(ALL_ID)} />
           {pf.list.map((p) => (
-            <Chip key={p.id} label={t(p.name)} active={pf.active === p.id} onPress={() => pf.setActive(p.id)} />
+            <Chip key={p.id} label={`${t(p.name)}  ${countIn(p.id)}`} active={pf.active === p.id} onPress={() => pf.setActive(p.id)} />
           ))}
         </ChipRow>
       )}
 
-      {/* Hlavní karta: hodnota, výsledek, dnešní změna a vývoj za 90 dní */}
-      <View style={styles.hero}>
-        <LinearGradient
-          colors={[trendUp ? 'rgba(61,220,132,0.10)' : 'rgba(255,77,106,0.10)', 'rgba(143,107,255,0.08)', 'transparent']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0.6, y: 1 }}
-          style={StyleSheet.absoluteFill}
-        />
-        <View style={{ gap: space.sm, padding: space.xl, paddingBottom: space.md }}>
-          <AppText variant="overline" color={color.muted}>
-            {t('Hodnota portfolia')}
-          </AppText>
-          <AnimatedNumber value={stats.value} format={fmt} />
-          <View style={styles.pills}>
-            <TrendPill tone={tone(stats.profit)} label={`${signedMoney(stats.profit, currency)} · ${pct(stats.profitPct)}`} />
-            {view.dayChange && Math.abs(view.dayChange.pct) >= 0.05 && (
-              <TrendPill tone={tone(view.dayChange.abs)} label={`${t('Dnes')} ${pct(view.dayChange.pct)}`} />
-            )}
-          </View>
-        </View>
-        {view.trend ? (
-          <View accessibilityLabel={t('Vývoj hodnoty za 90 dní')}>
-            <View style={styles.trendHead}>
-              <AppText variant="caption" color={color.faint}>
-                {t('Držené kusy · 90 dní')}
-              </AppText>
-              <AppText variant="caption" tabular color={trendUp ? color.pos : color.neg}>
-                {pct(view.trend[0] > 0 ? ((view.trend[view.trend.length - 1] - view.trend[0]) / view.trend[0]) * 100 : null)}
-              </AppText>
+      {view.pItems.length > 0 && <PortfolioHero stats={stats} positions={view.positions.length} currency={currency} dayChange={view.dayChange} trend={view.trend} />}
+      <MarketBar />
+      {view.pItems.length > 0 && <Allocation items={view.pItems} currency={currency} active={filters.game} onPick={(g) => setFilters({ ...filters, game: g })} />}
+
+      {view.pItems.length > 0 && (
+        <>
+          <View style={styles.listHead}>
+            <View style={styles.titleRow}>
+              <AppText variant="heading">{search.trim() ? t('Výsledky') : t('Položky')}</AppText>
+              <View style={styles.count}>
+                <AppText variant="caption" tabular color={color.muted}>
+                  {view.positions.length}
+                </AppText>
+              </View>
             </View>
-            <WideSparkline values={view.trend} height={84} color={trendUp ? color.pos : color.neg} fill />
+            <View style={styles.tools}>
+              <View style={styles.seg}>
+                {(['list', 'grid'] as const).map((v) => (
+                  <Pressable key={v} onPress={() => setListView(v)} style={[styles.segBtn, listView === v && styles.segOn]} accessibilityRole="button" accessibilityLabel={v === 'list' ? t('Seznam') : t('Mřížka')} accessibilityState={{ selected: listView === v }}>
+                    <Icon sf={v === 'list' ? 'list.bullet' : 'square.grid.2x2'} md={v === 'list' ? 'view-list' : 'grid-view'} size={15} color={listView === v ? color.bg : color.muted} />
+                  </Pressable>
+                ))}
+              </View>
+              {!IOS && (
+                <Pressable onPress={() => router.push('/sort')} style={styles.sortBtn} accessibilityRole="button">
+                  <AppText variant="overline" color={color.faint}>
+                    {t('Řadit')}
+                  </AppText>
+                  <AppText variant="caption" color={color.text}>
+                    {t(SORT_FIELDS[sort.field])} {sort.dir === 'desc' ? '↓' : '↑'}
+                  </AppText>
+                </Pressable>
+              )}
+            </View>
           </View>
-        ) : (
-          <View style={{ height: space.sm }} />
-        )}
-        <View style={styles.stats}>
-          <Stat label={t('Investováno')} value={fmt(stats.cost)} />
-          <View style={styles.statDivider} />
-          <Stat label={t('Kusů')} value={String(stats.held)} />
-          <View style={styles.statDivider} />
-          <Stat label={t('Realizováno')} value={signedMoney(stats.realized, currency)} tint={stats.realized ? toneColor[tone(stats.realized)] : undefined} />
-        </View>
-      </View>
-
-      {games.length > 1 && (
-        <ChipRow>
-          <Chip label={t('Vše')} active={filters.game === 'all'} onPress={() => setFilters({ ...filters, game: 'all' })} />
-          {games.map((g) => (
-            <Chip key={g} label={g} active={filters.game === g} onPress={() => setFilters({ ...filters, game: g })} />
-          ))}
-        </ChipRow>
-      )}
-
-      {view.positions.length > 0 && (
-        <View style={styles.listHead}>
-          <AppText variant="overline" color={color.muted}>
-            {search.trim() ? t('Výsledky hledání') : t('Produkty')} · {view.positions.length}
-          </AppText>
-          {!IOS && (
-            <Pressable onPress={() => router.push('/sort')} hitSlop={8} style={styles.sortBtn} accessibilityRole="button">
-              <Icon sf="arrow.up.arrow.down" md="sort" size={14} color={color.accent2} />
-              <AppText variant="caption" color={color.accent2}>
-                {t(SORT_FIELDS[sort.field])}
-              </AppText>
-            </Pressable>
-          )}
-        </View>
+          <ChipRow>
+            <Chip label={t('Vše')} active={filters.game === 'all'} onPress={() => setFilters({ ...filters, game: 'all' })} />
+            {GAMES.map((g) => (
+              <Chip key={g} label={g} active={filters.game === g} onPress={() => setFilters({ ...filters, game: g })} />
+            ))}
+          </ChipRow>
+        </>
       )}
     </View>
   );
 
   return (
     <>
-      <Stack.SearchBar placeholder={t('Hledat v portfoliu')} onChangeText={(e) => setSearch(e.nativeEvent.text)} onCancelButtonPress={() => setSearch('')} hideWhenScrolling />
+      <Stack.Screen options={{ title: '', headerLargeTitle: false, headerLeft: () => <Brand /> }} />
+      <Stack.SearchBar placeholder={t('Hledat…')} onChangeText={(e) => setSearch(e.nativeEvent.text)} onCancelButtonPress={() => setSearch('')} hideWhenScrolling />
       {IOS ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Menu icon="arrow.up.arrow.down" accessibilityLabel={t('Řazení')}>
@@ -140,21 +125,23 @@ export default function PortfolioScreen() {
               </Stack.Toolbar.Menu>
             ))}
           </Stack.Toolbar.Menu>
-          <Stack.Toolbar.Button icon="plus" onPress={() => router.push('/add')} accessibilityLabel={t('Přidat produkt')} />
+          <Stack.Toolbar.Button icon="plus" variant="prominent" tintColor={color.accent} onPress={() => router.push('/add')} accessibilityLabel={t('Přidat produkt')} />
         </Stack.Toolbar>
       ) : (
         <Stack.Screen
           options={{
             headerRight: () => (
               <Pressable onPress={() => router.push('/add')} hitSlop={10} accessibilityRole="button" accessibilityLabel={t('Přidat produkt')} style={styles.addBtn}>
-                <Icon sf="plus" md="add" size={22} color={color.accent2} />
+                <Icon sf="plus" md="add" size={20} color="#fff" />
               </Pressable>
             ),
           }}
         />
       )}
       <FlashList
+        key={listView}
         data={view.positions}
+        numColumns={grid ? 2 : 1}
         keyExtractor={(p) => p.key}
         contentInsetAdjustmentBehavior="automatic"
         keyboardDismissMode="on-drag"
@@ -162,17 +149,18 @@ export default function PortfolioScreen() {
         contentContainerStyle={{ padding: space.lg, paddingBottom: space.xxl * 3 }}
         ListHeaderComponent={header}
         refreshControl={<RefreshControl tintColor={color.accent2} refreshing={market.isRefetching} onRefresh={() => void market.refetch()} />}
-        renderItem={({ item, index }) => (
-          <PositionRow
-            p={item}
-            first={index === 0}
-            last={index === view.positions.length - 1}
-            currency={currency}
-            change={item.head.cmProductId ? view.changes.get(item.head.cmProductId) : undefined}
-            spark={item.head.cmProductId ? view.spark.get(item.head.cmProductId) : undefined}
-            marketUrl={item.head.cmProductId && m?.byId.get(item.head.cmProductId) ? productUrl(m.byId.get(item.head.cmProductId)!) : undefined}
-          />
-        )}
+        renderItem={({ item, index }) => {
+          const props = {
+            p: item,
+            first: index === 0,
+            last: index === view.positions.length - 1,
+            currency,
+            change: item.head.cmProductId ? view.changes.get(item.head.cmProductId) : undefined,
+            spark: item.head.cmProductId ? view.spark.get(item.head.cmProductId) : undefined,
+            marketUrl: urlOf(item.head.cmProductId),
+          };
+          return grid ? <PositionCard {...props} /> : <PositionRow {...props} />;
+        }}
         ListEmptyComponent={
           view.pItems.length === 0 ? (
             <Card style={styles.empty}>
@@ -196,135 +184,24 @@ export default function PortfolioScreen() {
             </View>
           )
         }
-        ListFooterComponent={
-          <AppText variant="caption" color={color.faint} style={{ textAlign: 'center', marginTop: space.xl }}>
-            {m
-              ? t('Ceny ze dne {0} · {1} produktů na trhu', date(m.priceDate.slice(0, 10)), m.products.length.toLocaleString())
-              : market.isError
-                ? t('Ceny se nepodařilo načíst – zkontroluj připojení k internetu.')
-                : t('Načítám ceny…')}
-          </AppText>
-        }
       />
     </>
   );
 }
 
-function Stat({ label, value, tint }: { label: string; value: string; tint?: string }) {
-  return (
-    <View style={{ flex: 1, gap: 2 }}>
-      <AppText variant="caption" color={color.faint}>
-        {label}
-      </AppText>
-      <AppText variant="label" tabular color={tint ?? color.text} numberOfLines={1} adjustsFontSizeToFit>
-        {value}
-      </AppText>
-    </View>
-  );
-}
-
-function confirmDelete(p: Position) {
-  const run = async () => {
-    for (const l of p.lots) await itemsStore.remove(l.id);
-  };
-  const msg = t('Smazat {0} včetně všech nákupů a prodejů? Tuto akci nejde vrátit.', p.name);
-  if (Platform.OS === 'web') {
-    if (confirm(msg)) void run();
-    return;
-  }
-  Alert.alert(t('Smazat produkt'), msg, [
-    { text: t('Zrušit'), style: 'cancel' },
-    { text: t('Smazat'), style: 'destructive', onPress: () => void run() },
-  ]);
-}
-
-type RowProps = { p: Position; first: boolean; last: boolean; currency: Currency; change?: PriceChange; spark?: number[]; marketUrl?: string };
-
-const PositionRow = memo(function PositionRow({ p, first, last, currency, change, spark, marketUrl }: RowProps) {
-  const d1 = change?.d1;
-  return (
-    <Link href={{ pathname: '/product/[key]', params: { key: p.key } }} asChild>
-      <Link.Trigger>
-        <Pressable accessibilityRole="button">
-          {({ pressed }) => (
-            <View style={[styles.row, first && styles.rowFirst, last && styles.rowLast, !first && styles.divider, pressed && { backgroundColor: color.surface2 }]}>
-              <ProductThumb item={p.head} size={52} />
-              <View style={{ flex: 1, gap: 4 }}>
-                <AppText variant="label" numberOfLines={2} style={{ fontFamily: font.semibold }}>
-                  {p.name}
-                </AppText>
-                <View style={styles.sub}>
-                  <AppText variant="caption" color={color.muted} numberOfLines={1}>
-                    {p.stats.held}× {t(p.head.type)}
-                  </AppText>
-                  {spark && <Sparkline values={spark} width={34} height={14} color={spark[spark.length - 1] >= spark[0] ? color.pos : color.neg} />}
-                  {d1 != null && Math.abs(d1) >= 0.05 && (
-                    <AppText variant="caption" tabular color={toneColor[tone(d1)]}>
-                      {pct(d1)}
-                    </AppText>
-                  )}
-                </View>
-              </View>
-              <View style={{ alignItems: 'flex-end', gap: 4 }}>
-                <AppText variant="bodyStrong" tabular>
-                  {money(p.stats.value, currency)}
-                </AppText>
-                <TrendPill small tone={tone(p.stats.profit)} label={pct(p.stats.profitPct)} />
-              </View>
-            </View>
-          )}
-        </Pressable>
-      </Link.Trigger>
-      <Link.Preview />
-      <Link.Menu>
-        {p.stats.held > 0 && <Link.MenuAction title={t('Prodat')} icon="banknote" onPress={() => router.push({ pathname: '/sell/[key]', params: { key: p.key } })} />}
-        <Link.MenuAction title={t('Přidat další nákup')} icon="plus.circle" onPress={() => router.push({ pathname: '/add', params: { from: p.key } })} />
-        {marketUrl ? <Link.MenuAction title={t('Otevřít na trhu')} icon="safari" onPress={() => void WebBrowser.openBrowserAsync(marketUrl)} /> : null}
-        <Link.MenuAction title={t('Smazat')} icon="trash" destructive onPress={() => confirmDelete(p)} />
-      </Link.Menu>
-    </Link>
-  );
-});
-
 const styles = StyleSheet.create({
-  hero: {
-    borderRadius: radius.lg + 4,
-    borderCurve: 'continuous',
-    overflow: 'hidden',
-    backgroundColor: color.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: color.borderStrong,
-  },
-  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
-  trendHead: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space.xl, paddingBottom: space.xs },
-  stats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    paddingHorizontal: space.xl,
-    paddingVertical: space.md,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: color.border,
-    backgroundColor: 'rgba(0,0,0,0.25)',
-  },
-  statDivider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', backgroundColor: color.border },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: IOS ? space.sm : 0 },
+  logo: { width: 30, height: 30, borderRadius: 8 },
+  brandText: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 20, letterSpacing: -0.4, color: color.text },
+  addBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: color.accent, marginRight: space.sm },
   listHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space.xs },
-  sortBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  addBtn: { paddingHorizontal: space.sm },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space.md,
-    padding: space.md,
-    backgroundColor: color.surface,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderRightWidth: StyleSheet.hairlineWidth,
-    borderColor: color.borderStrong,
-  },
-  rowFirst: { borderTopWidth: StyleSheet.hairlineWidth, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg },
-  rowLast: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
-  divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.border },
-  sub: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  count: { minWidth: 24, height: 24, paddingHorizontal: 7, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: color.surface2 },
+  tools: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  seg: { flexDirection: 'row', backgroundColor: color.surface2, borderRadius: radius.sm, padding: 3 },
+  segBtn: { width: 34, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  segOn: { backgroundColor: color.text },
+  sortBtn: { paddingHorizontal: space.md, paddingVertical: 4, borderRadius: radius.sm, backgroundColor: color.surface2 },
   empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.xxl },
   emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(143,107,255,0.14)', marginBottom: space.xs },
 });
