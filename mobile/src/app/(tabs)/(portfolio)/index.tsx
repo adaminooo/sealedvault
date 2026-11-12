@@ -15,7 +15,6 @@ import { useFilters, usePortfolios, usePortfolioView } from '@/data/use-portfoli
 import { useStoredState } from '@/data/use-stored-state';
 import { Allocation } from '@/screens/portfolio/allocation';
 import { PortfolioHero } from '@/screens/portfolio/hero';
-import { MarketBar } from '@/screens/portfolio/market-bar';
 import { PositionCard, PositionRow } from '@/screens/portfolio/position-item';
 import { AppText, Button, Card, color, radius, space } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
@@ -63,7 +62,6 @@ export default function PortfolioScreen() {
       )}
 
       {view.pItems.length > 0 && <PortfolioHero stats={stats} positions={view.positions.length} currency={currency} dayChange={view.dayChange} trend={view.trend} />}
-      <MarketBar />
       {view.pItems.length > 0 && <Allocation items={view.pItems} currency={currency} active={filters.game} onPick={(g) => setFilters({ ...filters, game: g })} />}
 
       {view.pItems.length > 0 && (

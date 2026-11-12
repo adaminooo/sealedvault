@@ -24,16 +24,14 @@ const DAY = 864e5;
 export const isoDaysAgo = (n: number, now = Date.now()) => new Date(now - n * DAY).toISOString().slice(0, 10);
 
 /**
- * Hodnota TOHO, CO TEĎ DRŽÍŠ, po dnech za posledních `days` dní (nezávisle na datu nákupu),
- * vyhlazená na ~30 bodů; poslední bod = dnešní ceny. Stejný výpočet jako křivka na webu.
+ * Skutečná denní hodnota TOHO, CO TEĎ DRŽÍŠ, za posledních `days` dní (nezávisle na datu nákupu):
+ * ceny z historie trhu přepočtené kurzem ČNB daného dne; poslední bod = dnes (aktuální ceny).
  */
-export function holdingsTrend(hist: HistoryData | null, items: PortfolioItem[], days = 90, now = Date.now()): number[] | null {
+export function holdingsDaily(hist: HistoryData | null, items: PortfolioItem[], days = 90, now = Date.now()): [string, number][] | null {
   if (!hist || !items.length) return null;
   const held = items.filter((it) => heldQty(it) > 0);
   if (!held.length) return null;
   const rate = rateLookup(hist.rates);
-  const dates: string[] = [];
-  for (let i = days; i >= 1; i--) dates.push(isoDaysAgo(i, now));
   const priced = held.map((it) => ({
     it,
     pts: it.cmProductId ? (hist.series[String(it.cmProductId)] ?? []) : [],
@@ -41,8 +39,9 @@ export function holdingsTrend(hist: HistoryData | null, items: PortfolioItem[], 
   }));
   if (!priced.some((x) => x.pts.length >= 2)) return null;
   const idx = priced.map(() => 0);
-  const vals: number[] = [];
-  for (const d of dates) {
+  const out: [string, number][] = [];
+  for (let i = days; i >= 1; i--) {
+    const d = isoDaysAgo(i, now);
     let v = 0;
     priced.forEach((x, k) => {
       const q = heldQty(x.it);
@@ -54,9 +53,17 @@ export function holdingsTrend(hist: HistoryData | null, items: PortfolioItem[], 
       const r = rate(d, x.usd ? 1 : 0);
       v += q * (r ? x.pts[idx[k]][1] * r : x.it.currentPrice);
     });
-    vals.push(v);
+    out.push([d, Math.round(v)]);
   }
-  vals.push(held.reduce((a, it) => a + heldQty(it) * it.currentPrice, 0));
+  out.push([isoDaysAgo(0, now), held.reduce((a, it) => a + heldQty(it) * it.currentPrice, 0)]);
+  return out;
+}
+
+/** Stejná křivka vyhlazená na ~30 bodů (malé grafy) */
+export function holdingsTrend(hist: HistoryData | null, items: PortfolioItem[], days = 90, now = Date.now()): number[] | null {
+  const daily = holdingsDaily(hist, items, days, now);
+  if (!daily) return null;
+  const vals = daily.map(([, v]) => v);
   const step = Math.max(1, Math.round(vals.length / 30));
   const out: number[] = [];
   for (let i = 0; i < vals.length; i += step) {

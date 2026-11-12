@@ -4,7 +4,7 @@ import { changeAbs, priceChanges } from '@/core/changes';
 import { applyFilters, DEFAULT_FILTERS, sortPositions, type Filters } from '@/core/filters';
 import { groupPositions, type Position } from '@/core/portfolio';
 import { ALL_ID, DEFAULT_PORTFOLIOS, portfolioOf } from '@/core/portfolios';
-import { holdingsTrend, isoDaysAgo } from '@/core/trend';
+import { holdingsDaily, isoDaysAgo } from '@/core/trend';
 import { items as itemsStore, useCollection } from '@/db/store';
 
 import { useHistory } from './queries';
@@ -50,7 +50,7 @@ export function usePortfolioView(search = '') {
     return out;
   }, [hist]);
 
-  const trend = useMemo(() => holdingsTrend(hist, base), [hist, base]);
+  const trend = useMemo(() => holdingsDaily(hist, base), [hist, base]);
 
   const dayChangeOf = useCallback(
     (p: Position) => (p.stats.held && p.head.cmProductId ? changeAbs(p.stats.value, changes.get(p.head.cmProductId)?.d1 ?? null) : null),
