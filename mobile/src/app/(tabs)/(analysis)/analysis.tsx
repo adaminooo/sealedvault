@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { totalStats } from '@/core/calc';
-import { date, money, pct, plural, signedMoney, tone } from '@/core/format';
+import { date, displayMoney, money, pct, plural, signedMoney, toDisplay, tone } from '@/core/format';
 import { LANG, LOCALE, t } from '@/core/i18n';
 import { avgHoldingDays, cashFlows, portfolioChange, positionPerformance, xirr } from '@/core/performance';
 import { concentration, DEFAULT_LIQUIDATION, liquidationValue, portfolioSeries, type ConcentrationBy, type LiquidationSettings } from '@/core/portfolio';
@@ -54,6 +54,7 @@ export default function AnalysisScreen() {
     return points.filter((p) => p.date >= cutoff && p.value != null);
   }, [points, range]);
   const chart = useMemo(() => shown.map((p) => [p.date, p.value!] as [string, number]), [shown]);
+  const invested = useMemo(() => shown.map((p) => p.invested), [shown]);
   const cur = scrub != null ? shown[scrub] : shown[shown.length - 1];
   const change = shown.length >= 2 && cur ? cur.value! - cur.invested - (shown[0].value! - shown[0].invested) : null;
 
@@ -103,7 +104,15 @@ export default function AnalysisScreen() {
           </AppText>
         )}
         {chart.length >= 2 ? (
-          <LineChart points={chart} height={200} color={color.accent} onScrub={setScrub} />
+          <LineChart
+            points={chart}
+            secondary={invested}
+            height={220}
+            color={color.accent}
+            formatY={(v) => displayMoney(toDisplay(v, currency), currency, true)}
+            legend={{ primary: t('Hodnota'), secondary: t('Investováno') }}
+            onScrub={setScrub}
+          />
         ) : (
           <AppText variant="caption" color={color.faint} style={styles.empty}>
             {histQ.isLoading ? t('Načítám historii…') : histQ.isError ? t('Historii cen se nepodařilo načíst.') : t('Graf se začne plnit s historií cen tvých produktů.')}

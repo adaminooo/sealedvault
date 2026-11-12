@@ -5,7 +5,7 @@ import { useMemo, useState, type ComponentProps } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { heldQty, unitCost } from '@/core/calc';
-import { date, money, pct, signedMoney, tone } from '@/core/format';
+import { date, displayMoney, money, pct, signedMoney, toDisplay, tone } from '@/core/format';
 import { HISTORY_START } from '@/core/history';
 import { t } from '@/core/i18n';
 import { productUrl, SOURCE_LABEL } from '@/core/market';
@@ -113,7 +113,7 @@ export default function ProductScreen() {
         </AppText>
         {rangeChange != null && <TrendPill tone={tone(rangeChange)} label={`${pct(rangeChange)} ${scrub == null ? t('za období') : t('od začátku období')}`} />}
         {points.length >= 2 ? (
-          <LineChart points={points} color={chartColor} height={190} onScrub={setScrub} />
+          <LineChart points={points} color={chartColor} height={210} formatY={(v) => displayMoney(toDisplay(v, currency), currency, true)} onScrub={setScrub} />
         ) : (
           <AppText variant="caption" color={color.faint} style={{ paddingVertical: space.xl, textAlign: 'center' }}>
             {id ? (hist.isLoading ? t('Načítám historii…') : t('Pro tento produkt zatím není historie cen.')) : t('Produkt není spárovaný s trhem – historie cen není k dispozici.')}
