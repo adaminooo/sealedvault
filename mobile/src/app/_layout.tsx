@@ -57,13 +57,13 @@ export default function RootLayout() {
             title: t('Přidat'),
             presentation: 'formSheet',
             sheetGrabberVisible: true,
-            sheetAllowedDetents: [0.6, 1],
+            sheetAllowedDetents: [0.9, 1],
             contentStyle: { backgroundColor: color.surface },
           }}
         />
         <Stack.Screen
           name="sell/[key]"
-          options={{ title: t('Prodat'), presentation: 'formSheet', sheetGrabberVisible: true, sheetAllowedDetents: [0.6], contentStyle: { backgroundColor: color.surface } }}
+          options={{ title: t('Prodat'), presentation: 'formSheet', sheetGrabberVisible: true, sheetAllowedDetents: [0.75, 1], contentStyle: { backgroundColor: color.surface } }}
         />
         <Stack.Screen
           name="sort"

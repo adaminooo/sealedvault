@@ -134,7 +134,7 @@ export default function ProductScreen() {
       </AppText>
       <Card style={{ gap: 0, paddingVertical: space.xs }}>
         {p.lots.map((l, i) => (
-          <View key={l.id} style={[styles.lot, i > 0 && styles.divider]}>
+          <Pressable key={l.id} onPress={() => router.push({ pathname: '/add', params: { id: l.id } })} accessibilityRole="button" style={({ pressed }) => [styles.lot, i > 0 && styles.divider, pressed && { opacity: 0.6 }]}>
             <View style={{ flex: 1 }}>
               <AppText variant="bodyStrong">
                 {l.quantity}× {money(unitCost(l), currency)}
@@ -148,11 +148,14 @@ export default function ProductScreen() {
             <AppText variant="label" tabular color={toneColor[tone(l.currentPrice - unitCost(l))]}>
               {pct(unitCost(l) > 0 ? ((l.currentPrice - unitCost(l)) / unitCost(l)) * 100 : null)}
             </AppText>
-          </View>
+          </Pressable>
         ))}
       </Card>
 
-      {s.held > 0 && <Button label={t('Prodat')} onPress={() => router.push({ pathname: '/sell/[key]', params: { key: p.key } })} />}
+      <View style={{ gap: space.sm }}>
+        {s.held > 0 && <Button label={t('Prodat')} onPress={() => router.push({ pathname: '/sell/[key]', params: { key: p.key } })} />}
+        <Button variant="secondary" label={t('Přidat další nákup')} onPress={() => router.push({ pathname: '/add', params: { from: p.key } })} />
+      </View>
     </Screen>
   );
 }
