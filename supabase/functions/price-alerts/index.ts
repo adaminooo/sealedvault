@@ -124,5 +124,7 @@ Deno.serve(async () => {
     if (dead.length) await db.from('push_tokens').delete().in('token', dead);
   }
 
-  return new Response(JSON.stringify({ users: byUser.size, alerts: sentAlerts, messages: messages.length }), { headers: { 'Content-Type': 'application/json' } });
+  // počty jen do logu funkce (veřejně se nic nevrací)
+  console.log(JSON.stringify({ users: byUser.size, alerts: sentAlerts, messages: messages.length }));
+  return new Response('ok');
 });

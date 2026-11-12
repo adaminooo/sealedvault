@@ -47,8 +47,8 @@ alter table public.alert_runs enable row level security;
 -- Každý den v 07:15 UTC (po aktualizaci cen v 06:30) zavolá funkci price-alerts.
 -- Volání nese jen veřejný klíč – funkce je bezpečná i při cizím volání
 -- (běží nejvýš jednou za 6 h a každý alert pošle jen jednou).
-create extension if not exists pg_cron;
-create extension if not exists pg_net;
+create extension if not exists pg_cron with schema pg_catalog;
+create extension if not exists pg_net with schema extensions;
 
 select cron.unschedule('sealedvault-price-alerts')
 where exists (select 1 from cron.job where jobname = 'sealedvault-price-alerts');
