@@ -274,6 +274,18 @@ export async function signOut() {
   await supabase().auth.signOut();
 }
 
+/**
+ * Trvale smaže účet a jeho data na serveru (Edge Function delete-account).
+ * Data v tomto telefonu zůstanou (jako po odhlášení).
+ */
+export async function deleteAccount() {
+  const { error } = await supabase().functions.invoke('delete-account', { method: 'POST' });
+  if (error) throw error;
+  await supabase().auth.signOut({ scope: 'local' });
+  ls().removeItem(SYNC_USER);
+  writeOutbox({});
+}
+
 let started = false;
 /** Spustit při startu appky: obnoví přihlášení a hlídá, kdy synchronizovat */
 export function initCloud() {

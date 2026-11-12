@@ -1,0 +1,11 @@
+# Nastavení Edge Functions pro Supabase CLI (supabase functions deploy).
+# Projekt používá nové API klíče (sb_publishable_…), které nejsou JWT – přihlášení
+# si proto funkce ověřují samy (delete-account: token uživatele; price-alerts: nic nevrací,
+# běží nejvýš jednou za 6 h).
+project_id = "xvoosxlqoyrbefvwkdgm"
+
+[functions.delete-account]
+verify_jwt = false
+
+[functions.price-alerts]
+verify_jwt = false

@@ -20,7 +20,9 @@ import { Chip, ChipRow } from '@/ui/chip';
 import { DateField } from '@/ui/date-field';
 import { Field } from '@/ui/field';
 import { ProductThumb } from '@/ui/product-thumb';
+import { PhotoStrip } from '@/ui/photo-strip';
 import { Stepper } from '@/ui/stepper';
+import { MAX_PHOTOS, pickPhotos } from '@/data/photos';
 
 /**
  * Přidání nákupu / úprava nákupu.
@@ -61,7 +63,21 @@ export default function AddScreen() {
   const [buyDate, setBuyDate] = useState(editing?.buyDate ?? todayIso());
   const [note, setNote] = useState(editing?.note ?? '');
   const [condition, setCondition] = useState<string[]>(editing?.condition ?? []);
-  const [more, setMore] = useState(!!editing && (editing.fees > 0 || !!editing.note || !!editing.condition?.length));
+  const [photos, setPhotos] = useState<string[]>(editing?.photos ?? []);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const addPhotos = async (src: 'camera' | 'library') => {
+    setPhotoBusy(true);
+    setError(null);
+    try {
+      const added = await pickPhotos(src, MAX_PHOTOS - photos.length);
+      setPhotos((p) => [...p, ...added].slice(0, MAX_PHOTOS));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('Fotku se nepodařilo načíst.'));
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+  const [more, setMore] = useState(!!editing && (editing.fees > 0 || !!editing.note || !!editing.condition?.length || !!editing.photos?.length));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -133,6 +149,7 @@ export default function AddScreen() {
       currentPrice: priced ?? editing?.currentPrice ?? buyCzk,
       note: note.trim(),
       condition: condition.length ? condition : undefined,
+      photos: photos.length ? photos : undefined,
       ...(market
         ? {
             productImage: matched ? productImage : editing?.productImage,
@@ -169,6 +186,7 @@ export default function AddScreen() {
         setFees('');
         setNote('');
         setCondition([]);
+        setPhotos([]);
         setProductImage(undefined);
       } else close();
     } catch (e) {
@@ -339,12 +357,30 @@ export default function AddScreen() {
                     ))}
                   </View>
                 </View>
+                <View style={{ gap: space.sm }}>
+                  <AppText variant="label" color={color.muted}>
+                    {t('Fotky ({0}/{1})', photos.length, MAX_PHOTOS)}
+                  </AppText>
+                  <PhotoStrip photos={photos} onRemove={(i) => setPhotos((p) => p.filter((_, k) => k !== i))} size={72} />
+                  {process.env.EXPO_OS !== 'web' && photos.length < MAX_PHOTOS && (
+                    <View style={{ flexDirection: 'row', gap: space.sm }}>
+                      {photoBusy ? (
+                        <ActivityIndicator color={color.accent2} />
+                      ) : (
+                        <>
+                          <Chip label={t('Vyfotit')} onPress={() => void addPhotos('camera')} />
+                          <Chip label={t('Z galerie')} onPress={() => void addPhotos('library')} />
+                        </>
+                      )}
+                    </View>
+                  )}
+                </View>
                 <Field label={t('Poznámka')} value={note} onChangeText={setNote} multiline style={{ minHeight: 80, paddingTop: 12, textAlignVertical: 'top' }} />
               </Card>
             ) : (
               <Pressable accessibilityRole="button" onPress={() => setMore(true)} hitSlop={8} style={{ alignSelf: 'center', padding: space.sm }}>
                 <AppText variant="label" color={color.accent2}>
-                  {t('Poplatky, stav a poznámka')}
+                  {t('Poplatky, stav, fotky a poznámka')}
                 </AppText>
               </Pressable>
             )}

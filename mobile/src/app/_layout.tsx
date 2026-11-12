@@ -12,6 +12,7 @@ import { useEffect } from 'react';
 import { t } from '@/core/i18n';
 import { queryClient } from '@/data/queries';
 import { initCloud } from '@/sync/cloud';
+import { usePushNavigation } from '@/sync/push';
 import { color, font } from '@/ui';
 
 SplashScreen.preventAutoHideAsync();
@@ -23,6 +24,7 @@ const theme = {
 };
 
 export default function RootLayout() {
+  usePushNavigation();
   const [loaded, error] = useFonts({
     Inter_400Regular,
     Inter_500Medium,

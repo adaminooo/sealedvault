@@ -17,7 +17,9 @@ import { items as itemsStore, useCollection } from '@/db/store';
 import { AppText, Button, Card, Screen, color, space, toneColor } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
 import { LineChart } from '@/ui/line-chart';
+import { PhotoStrip } from '@/ui/photo-strip';
 import { ProductThumb } from '@/ui/product-thumb';
+import { AlertsCard } from '@/screens/product/alerts-card';
 
 const RANGES = { '1M': 30, '3M': 90, '1R': 365, [`ALL`]: 0 } as const;
 type Range = keyof typeof RANGES;
@@ -112,6 +114,10 @@ export default function ProductScreen() {
         <Stat label={t('Profit')} value={`${signedMoney(s.profit, currency)} · ${pct(s.profitPct)}`} tint={toneColor[tone(s.profit)]} />
         {s.sold > 0 && <Stat label={t('Realizovaný zisk')} value={signedMoney(s.realized, currency)} tint={toneColor[tone(s.realized)]} />}
       </Card>
+
+      {s.held > 0 && <AlertsCard key={p.key} position={p} currency={currency} />}
+
+      {p.lots.some((l) => l.photos?.length) && <PhotoStrip photos={p.lots.flatMap((l) => l.photos ?? [])} />}
 
       {product && (
         <Pressable onPress={() => void WebBrowser.openBrowserAsync(productUrl(product))} accessibilityRole="link">

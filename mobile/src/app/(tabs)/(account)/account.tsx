@@ -4,7 +4,7 @@ import { File, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
-import { Alert, Linking, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, StyleSheet, Switch, TextInput, View } from 'react-native';
 
 import { SUPPORT_EMAIL } from '@/config';
 import { backupFilename, toJson } from '@/core/backup';
@@ -14,7 +14,8 @@ import type { Currency } from '@/core/types';
 import { usePortfolios } from '@/data/use-portfolio';
 import { useStoredState } from '@/data/use-stored-state';
 import { items as itemsStore, wishlist as wishStore } from '@/db/store';
-import { signOut, syncNow, useCloud } from '@/sync/cloud';
+import { authMessage, deleteAccount, signOut, syncNow, useCloud } from '@/sync/cloud';
+import { disablePush, enablePush, forgetPush, usePushEnabled } from '@/sync/push';
 import { AppText, Button, Card, Screen, color, font, radius, space } from '@/ui';
 import { Chip, ChipRow } from '@/ui/chip';
 
@@ -35,6 +36,46 @@ export default function AccountScreen() {
   const pf = usePortfolios();
   const [newName, setNewName] = useState('');
   const [backupMsg, setBackupMsg] = useState<string | null>(null);
+  const pushOn = usePushEnabled();
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMsg, setPushMsg] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const togglePush = async (on: boolean) => {
+    setPushMsg(null);
+    setPushBusy(true);
+    try {
+      if (on) await enablePush();
+      else await disablePush();
+    } catch (e) {
+      setPushMsg(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const logout = async () => {
+    await disablePush().catch(() => forgetPush());
+    await signOut();
+  };
+
+  const removeAccount = () =>
+    confirmAction(
+      t('Smazat účet'),
+      t('Trvale smazat účet {0} a všechna jeho data na serveru? Data v tomto telefonu zůstanou. Tuto akci nejde vrátit.', cloud.user?.email ?? ''),
+      t('Smazat účet'),
+      async () => {
+        setDeleting(true);
+        try {
+          await disablePush().catch(() => forgetPush());
+          await deleteAccount();
+        } catch (e) {
+          setPushMsg(authMessage(e));
+        } finally {
+          setDeleting(false);
+        }
+      },
+    );
 
   const status = cloud.syncing
     ? t('Synchronizuji…')
@@ -111,9 +152,19 @@ export default function AccountScreen() {
                 style={{ flex: 1 }}
                 label={t('Odhlásit se')}
                 variant="secondary"
-                onPress={() => confirmAction(t('Odhlásit se'), t('Odhlásit se? Data zůstanou v tomto zařízení.'), t('Odhlásit se'), () => void signOut())}
+                onPress={() => confirmAction(t('Odhlásit se'), t('Odhlásit se? Data zůstanou v tomto zařízení.'), t('Odhlásit se'), () => void logout())}
               />
             </View>
+            <View style={styles.switchRow}>
+              <View style={{ flex: 1 }}>
+                <AppText variant="bodyStrong">{t('Upozornění na ceny')}</AppText>
+                <AppText variant="caption" color={color.muted}>
+                  {t('Jednou denně, když cena překročí tvůj alert nebo klesne na cíl z wishlistu.')}
+                </AppText>
+              </View>
+              {pushBusy ? <ActivityIndicator color={color.accent2} /> : <Switch value={pushOn} onValueChange={(v) => void togglePush(v)} trackColor={{ true: color.accent }} />}
+            </View>
+            {pushMsg && <AppText variant="caption" color={color.neg}>{pushMsg}</AppText>}
           </>
         ) : (
           <>
@@ -192,6 +243,25 @@ export default function AccountScreen() {
         </Card>
       </Section>
 
+      {cloud.user && (
+        <Section title={t('Smazání účtu')}>
+          <Card>
+            <AppText variant="caption" color={color.muted}>
+              {t('Smaže účet a všechna data uložená na serveru. Na ostatních zařízeních se odhlásíš.')}
+            </AppText>
+            {deleting ? (
+              <ActivityIndicator color={color.neg} style={{ minHeight: 44 }} />
+            ) : (
+              <Pressable onPress={removeAccount} style={styles.danger} accessibilityRole="button">
+                <AppText variant="bodyStrong" color={color.neg}>
+                  {t('Smazat účet')}
+                </AppText>
+              </Pressable>
+            )}
+          </Card>
+        </Section>
+      )}
+
       <Section title={t('Podpora')}>
         <Card>
           <Pressable onPress={() => void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('SealedVault – mobilní appka')}`)} accessibilityRole="link">
@@ -228,6 +298,8 @@ function Setting({ label, children }: { label: string; children: React.ReactNode
 
 const styles = StyleSheet.create({
   row2: { flexDirection: 'row', gap: space.sm },
+  switchRow: { flexDirection: 'row', alignItems: 'center', gap: space.md, marginTop: space.sm },
+  danger: { minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: radius.sm, backgroundColor: color.negBg },
   pfRow: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   pfInput: {
     flex: 1,
