@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Svg, { Circle, Defs, Pattern, Rect } from 'react-native-svg';
 
 import type { ItemStats } from '@/core/calc';
 import { date, money, pct, signedMoney, tone } from '@/core/format';
@@ -8,8 +9,27 @@ import { t } from '@/core/i18n';
 import type { Currency } from '@/core/types';
 import { AppText, color, radius, space, toneColor } from '@/ui';
 import { AnimatedNumber } from '@/ui/animated-number';
+import { Glow } from '@/ui/glow';
 import { LineChart } from '@/ui/line-chart';
 import { TrendPill } from '@/ui/pill';
+
+const POS = { h1: 'rgba(61,220,132,0.8)', h2: 'rgba(52,199,160,0.4)', glow: 'rgba(61,220,132,0.22)', glowSolid: '#3ddc84', glow2Solid: '#34c7a0' };
+const NEG = { h1: 'rgba(255,77,106,0.8)', h2: 'rgba(255,159,67,0.45)', glow: 'rgba(255,77,106,0.22)', glowSolid: '#ff4d6a', glow2Solid: '#ff9f43' };
+const NEUTRAL = { h1: 'rgba(143,107,255,0.75)', h2: 'rgba(79,125,255,0.55)', glow: 'rgba(143,107,255,0.26)', glowSolid: '#8f6bff', glow2Solid: '#4f7dff' };
+
+/** Jemný tečkovaný vzor karty (16 px) */
+function Dots() {
+  return (
+    <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Defs>
+        <Pattern id="heroDots" width={16} height={16} patternUnits="userSpaceOnUse">
+          <Circle cx={1} cy={1} r={1} fill="rgba(255,255,255,0.045)" />
+        </Pattern>
+      </Defs>
+      <Rect width="100%" height="100%" fill="url(#heroDots)" />
+    </Svg>
+  );
+}
 
 type Props = {
   stats: ItemStats & { count: number };
@@ -27,7 +47,8 @@ type Props = {
 export function PortfolioHero({ stats, positions, currency, dayChange, trend }: Props) {
   const [scrub, setScrub] = useState<number | null>(null);
   const tn = tone(stats.profit);
-  const glow = tn === 'neg' ? 'rgba(255,77,106,' : 'rgba(61,220,132,';
+  // barvy karty podle výsledku (jako na webu): okraj, záře
+  const pal = tn === 'neg' ? NEG : tn === 'pos' ? POS : NEUTRAL;
 
   const first = trend?.[0]?.[1];
   const last = trend?.[trend.length - 1]?.[1];
@@ -37,8 +58,12 @@ export function PortfolioHero({ stats, positions, currency, dayChange, trend }: 
   const point = scrub != null && trend ? trend[scrub] : null;
 
   return (
-    <View style={[styles.card, { borderColor: `${glow}0.35)` }]}>
-      <LinearGradient colors={[`${glow}0.12)`, 'rgba(13,13,18,0)']} start={{ x: 0, y: 0 }} end={{ x: 0.7, y: 0.8 }} style={StyleSheet.absoluteFill} />
+    <LinearGradient colors={[pal.h1, 'rgba(255,255,255,0.06)', pal.h2]} locations={[0, 0.45, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.border, { boxShadow: `0 24px 50px -28px ${pal.glow}` }]}>
+    <View style={styles.card}>
+      <LinearGradient colors={['#121219', '#0b0b10']} style={StyleSheet.absoluteFill} />
+      <Dots />
+      <Glow size={340} color={pal.glowSolid} opacity={0.22} style={{ right: -90, bottom: -150 }} drift={{ x: -50, y: -30, scale: 1.15, ms: 18000 }} />
+      <Glow size={360} color={pal.glow2Solid} opacity={0.14} style={{ left: -120, top: -140 }} drift={{ x: 60, y: 40, scale: 1.15, ms: 14000 }} />
 
       {/* Hodnota a výsledek */}
       <View style={styles.top}>
@@ -112,6 +137,7 @@ export function PortfolioHero({ stats, positions, currency, dayChange, trend }: 
         <Stat label={t('Kusů')} value={String(stats.held)} />
       </View>
     </View>
+    </LinearGradient>
   );
 }
 
@@ -129,17 +155,17 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
+  border: { borderRadius: radius.lg + 4, borderCurve: 'continuous', padding: 1 },
   card: {
-    borderRadius: radius.lg + 4,
+    borderRadius: radius.lg + 3,
     borderCurve: 'continuous',
-    borderWidth: 1,
     overflow: 'hidden',
-    backgroundColor: color.surface,
+    backgroundColor: '#0d0d12',
   },
   top: { gap: space.xs, paddingHorizontal: space.xl, paddingTop: space.xl },
-  results: { flexDirection: 'row', gap: space.xl, marginTop: space.sm },
-  result: { gap: 2 },
-  resultLine: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
+  results: { flexDirection: 'row', gap: space.lg, marginTop: space.sm },
+  result: { flex: 1, gap: 4, minWidth: 0 },
+  resultLine: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: space.sm, rowGap: 4 },
   chart: { paddingHorizontal: space.md, paddingTop: space.lg, gap: space.xs },
   chartCaption: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: space.sm },
   footer: {

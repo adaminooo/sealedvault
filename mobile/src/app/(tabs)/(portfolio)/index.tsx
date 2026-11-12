@@ -17,6 +17,7 @@ import { Allocation } from '@/screens/portfolio/allocation';
 import { PortfolioHero } from '@/screens/portfolio/hero';
 import { PositionCard, PositionRow } from '@/screens/portfolio/position-item';
 import { AppText, Button, Card, color, radius, space } from '@/ui';
+import { Backdrop } from '@/ui/backdrop';
 import { Chip, ChipRow } from '@/ui/chip';
 import { Icon } from '@/ui/icon';
 
@@ -52,6 +53,7 @@ export default function PortfolioScreen() {
 
   const header = (
     <View style={{ gap: space.lg, paddingBottom: space.md }}>
+      <Backdrop />
       {pf.list.length > 1 && (
         <ChipRow>
           <Chip label={t('Vše')} active={pf.active === ALL_ID} onPress={() => pf.setActive(ALL_ID)} />
