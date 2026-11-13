@@ -59,7 +59,8 @@ function useInfoGroup() {
 
 /** Analýza: vývoj portfolia, zisky, výkon, nejlepší/nejslabší, likvidační hodnota a koncentrace */
 export default function AnalysisScreen() {
-  const { visible: items } = usePortfolioView();
+  // celé aktivní portfolio včetně prodaných kusů (filtry seznamu sem nepatří – jinak by chyběl realizovaný zisk)
+  const { pItems: items } = usePortfolioView();
   const market = useMarket().data ?? null;
   const [currency] = useStoredState<Currency>('currency', 'CZK');
   const [range, setRange] = useStoredState<Range>('chartRange', 'ALL');
@@ -106,7 +107,9 @@ export default function AnalysisScreen() {
     return (
       <Screen>
         <Card style={{ alignItems: 'center', gap: space.sm, paddingVertical: space.xxl }}>
-          <Icon sf="chart.xyaxis.line" md="insights" size={30} color={color.accent2} />
+          <View style={styles.emptyIcon}>
+            <Icon sf="chart.xyaxis.line" md="insights" size={28} color={color.accent2} />
+          </View>
           <AppText variant="heading">{t('Zatím není co analyzovat')}</AppText>
           <AppText color={color.muted} style={{ textAlign: 'center' }}>
             {t('Přidej první produkt a uvidíš tu vývoj hodnoty, zisky a rozložení portfolia.')}
@@ -360,6 +363,7 @@ function RankRow({ p, first, currency }: { p: PositionPerf; first: boolean; curr
 }
 
 const styles = StyleSheet.create({
+  emptyIcon: { width: 60, height: 60, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(143,107,255,0.14)', marginBottom: space.xs },
   empty: { paddingVertical: space.xl, textAlign: 'center' },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, minHeight: 28 },
   label: { flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 },

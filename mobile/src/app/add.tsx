@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     borderWidth: 1,
     borderColor: color.borderStrong,
-    backgroundColor: color.surface2,
+    backgroundColor: 'rgba(255,255,255,0.05)',
   },
   gameDot: { width: 10, height: 10, borderRadius: 5 },
   delete: { minHeight: 50, alignItems: 'center', justifyContent: 'center', borderRadius: radius.md },

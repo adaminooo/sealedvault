@@ -51,5 +51,5 @@ export function DateField({ label, value, onChange }: { label: string; value: st
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md },
-  btn: { backgroundColor: color.surface2, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.sm },
+  btn: { backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: space.sm },
 });

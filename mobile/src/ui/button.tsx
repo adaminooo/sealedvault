@@ -34,8 +34,8 @@ export function Button({ label, variant = 'primary', onPress, style, ...rest }: 
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 50,
-    borderRadius: radius.md,
+    minHeight: 48,
+    borderRadius: radius.pill,
     borderCurve: 'continuous',
     overflow: 'hidden',
     alignItems: 'center',
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.xl,
   },
   secondary: {
-    backgroundColor: color.surface2,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: color.borderStrong,
   },

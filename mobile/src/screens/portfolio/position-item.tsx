@@ -16,9 +16,11 @@ import { ProductThumb } from '@/ui/product-thumb';
 
 export type ItemProps = { p: Position; first?: boolean; last?: boolean; currency: Currency; change?: PriceChange; spark?: number[]; marketUrl?: string };
 
-function confirmDelete(p: Position) {
+/** Smazání produktu se všemi nákupy (po potvrzení); onDone se zavolá po smazání */
+export function confirmDelete(p: Position, onDone?: () => void) {
   const run = async () => {
     for (const l of p.lots) await itemsStore.remove(l.id);
+    onDone?.();
   };
   const msg = t('Smazat {0} včetně všech nákupů a prodejů? Tuto akci nejde vrátit.', p.name);
   if (Platform.OS === 'web') {

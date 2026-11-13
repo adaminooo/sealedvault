@@ -17,7 +17,7 @@ export function Chip({ label, active, onPress, icon }: { label: string; active?:
       }}
       style={({ pressed }) => [styles.chip, active && styles.active, pressed && { opacity: 0.75 }]}>
       {icon}
-      <AppText variant="label" color={active ? color.text : color.muted}>
+      <AppText variant="label" color={active ? color.text : color.muted} style={{ fontFamily: 'Inter_600SemiBold' }}>
         {label}
       </AppText>
     </Pressable>
@@ -41,11 +41,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.md + 2,
     height: 34,
     borderRadius: radius.pill,
-    backgroundColor: color.surface,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: color.borderStrong,
   },
-  active: { backgroundColor: color.surface3, borderColor: color.accent },
+  // stejné zvýraznění jako přepínač (Segmented)
+  active: { backgroundColor: 'rgba(143,107,255,0.28)', borderColor: 'rgba(169,157,255,0.55)' },
   row: { marginHorizontal: -space.lg, flexGrow: 0 },
   rowContent: { paddingHorizontal: space.lg, gap: space.sm },
 });

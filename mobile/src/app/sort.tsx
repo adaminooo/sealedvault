@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { dirLabels, parseSort, SORT_FIELDS, type SortDir, type SortField } from '@/core/filters';
 import { t } from '@/core/i18n';
 import { useFilters } from '@/data/use-portfolio';
-import { AppText, color, space } from '@/ui';
+import { AppText, color, font, space } from '@/ui';
 
 /** Řazení seznamu – vysouvací panel se seznamem možností */
 export default function SortSheet() {
@@ -32,7 +32,7 @@ export default function SortSheet() {
               const on = cur.field === field && cur.dir === dir;
               return (
                 <Pressable key={dir} onPress={() => choose(field, dir)} style={[styles.opt, on && styles.on]} accessibilityRole="button" accessibilityState={{ selected: on }}>
-                  <AppText variant="caption" color={on ? color.text : color.muted}>
+                  <AppText variant="caption" color={on ? color.text : color.muted} style={{ fontFamily: font.semibold }}>
                     {t(labels[dir])}
                   </AppText>
                 </Pressable>
@@ -47,6 +47,7 @@ export default function SortSheet() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: space.xs },
-  opt: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: 10, backgroundColor: color.surface2 },
-  on: { backgroundColor: color.accent },
+  // stejný vzhled jako přepínač (Segmented): kapsle, fialové zvýraznění
+  opt: { paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.05)' },
+  on: { backgroundColor: 'rgba(143,107,255,0.28)', boxShadow: 'inset 0 0 0 1px rgba(169,157,255,0.45)' },
 });

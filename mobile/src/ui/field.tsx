@@ -23,10 +23,10 @@ export function Field({ label, hint, style, ...rest }: TextInputProps & { label:
 const styles = StyleSheet.create({
   wrap: { gap: space.xs + 2 },
   input: {
-    minHeight: 50,
-    borderRadius: radius.sm,
+    minHeight: 48,
+    borderRadius: radius.md,
     borderCurve: 'continuous',
-    backgroundColor: color.surface2,
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: color.borderStrong,
     paddingHorizontal: space.md + 2,

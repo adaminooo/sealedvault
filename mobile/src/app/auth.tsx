@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Pressable, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Pressable } from 'react-native';
 
 import { t } from '@/core/i18n';
 import { authMessage, resetPassword, signIn, signUp } from '@/sync/cloud';
-import { AppText, Button, Screen, color, space } from '@/ui';
+import { AppText, Button, Screen, color } from '@/ui';
 import { Field } from '@/ui/field';
+import { Segmented } from '@/ui/segmented';
 
 type Mode = 'signin' | 'signup' | 'reset';
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -61,15 +62,15 @@ export default function AuthScreen() {
         </AppText>
 
         {mode !== 'reset' && (
-          <View style={styles.segment}>
-            {(['signin', 'signup'] as const).map((m) => (
-              <Pressable key={m} onPress={() => switchTo(m)} style={[styles.segItem, mode === m && styles.segActive]} accessibilityRole="tab" accessibilityState={{ selected: mode === m }}>
-                <AppText variant="label" color={mode === m ? color.text : color.muted}>
-                  {m === 'signin' ? t('Přihlásit se') : t('Vytvořit účet')}
-                </AppText>
-              </Pressable>
-            ))}
-          </View>
+          <Segmented
+            stretch
+            options={[
+              { value: 'signin', label: t('Přihlásit se') },
+              { value: 'signup', label: t('Vytvořit účet') },
+            ]}
+            value={mode}
+            onChange={switchTo}
+          />
         )}
 
         <Field label={t('E-mail')} value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoComplete="email" textContentType="emailAddress" returnKeyType="next" />
@@ -106,12 +107,6 @@ export default function AuthScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  segment: { flexDirection: 'row', backgroundColor: color.surface2, borderRadius: 12, padding: 3 },
-  segItem: { flex: 1, alignItems: 'center', paddingVertical: space.sm + 2, borderRadius: 10 },
-  segActive: { backgroundColor: color.surface3 },
-});
 
 function close() {
   if (router.canGoBack()) router.back();

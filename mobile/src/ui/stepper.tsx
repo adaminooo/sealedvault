@@ -38,7 +38,7 @@ export function Stepper({ value, onChange, min = 1, max = 9999, label }: { value
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  box: { flexDirection: 'row', alignItems: 'center', backgroundColor: color.surface2, borderRadius: radius.sm },
+  box: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: radius.pill },
   btn: { width: 44, height: 40, alignItems: 'center', justifyContent: 'center' },
   val: { minWidth: 36, textAlign: 'center' },
 });

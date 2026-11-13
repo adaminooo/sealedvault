@@ -1,20 +1,12 @@
-import { StyleSheet, View, type ViewProps } from 'react-native';
+import type { ViewProps } from 'react-native';
 
-import { color, radius, space } from './theme';
+import { Panel } from './panel';
+import { space } from './theme';
 
-/** Plocha s jemným okrajem – základní kontejner obsahu */
-export function Card({ style, ...rest }: ViewProps) {
-  return <View {...rest} style={[styles.card, style]} />;
+/**
+ * Základní kontejner obsahu – stejný vzhled jako bloky na hlavní obrazovce a v Analýze
+ * (přechodový okraj, tmavý přechod). Jednotný pro všechny obrazovky.
+ */
+export function Card({ style, children }: ViewProps) {
+  return <Panel style={[{ gap: space.sm }, style]}>{children}</Panel>;
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: color.surface,
-    borderRadius: radius.lg,
-    borderCurve: 'continuous',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: color.borderStrong,
-    padding: space.lg,
-    gap: space.sm,
-  },
-});

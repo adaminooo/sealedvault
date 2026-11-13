@@ -2,8 +2,9 @@ import { Children, isValidElement, type ComponentProps, type ReactNode } from 'r
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Icon } from './icon';
+import { Panel } from './panel';
 import { AppText } from './text';
-import { color, radius, space } from './theme';
+import { color, space } from './theme';
 
 type IconProps = ComponentProps<typeof Icon>;
 
@@ -17,14 +18,14 @@ export function Group({ title, footer, children }: { title?: string; footer?: st
           {title}
         </AppText>
       ) : null}
-      <View style={styles.group}>
+      <Panel padded={false}>
         {rows.map((r, i) => (
           <View key={i}>
             {i > 0 && <View style={styles.divider} />}
             {r}
           </View>
         ))}
-      </View>
+      </Panel>
       {footer ? (
         <AppText variant="caption" color={color.faint} style={{ paddingHorizontal: space.xs }}>
           {footer}
@@ -84,14 +85,6 @@ export function Row({
 }
 
 const styles = StyleSheet.create({
-  group: {
-    borderRadius: radius.lg,
-    borderCurve: 'continuous',
-    overflow: 'hidden',
-    backgroundColor: color.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: color.borderStrong,
-  },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: color.border, marginLeft: 56 },
   row: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.lg, paddingVertical: space.md, minHeight: 52 },
   iconTile: { width: 28, height: 28, borderRadius: 8, borderCurve: 'continuous', alignItems: 'center', justifyContent: 'center' },

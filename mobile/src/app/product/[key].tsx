@@ -15,9 +15,10 @@ import type { Currency } from '@/core/types';
 import { useHistory, useMarket } from '@/data/queries';
 import { useStoredState } from '@/data/use-stored-state';
 import { items as itemsStore, useCollection } from '@/db/store';
+import { confirmDelete } from '@/screens/portfolio/position-item';
 import { AlertsCard } from '@/screens/product/alerts-card';
-import { AppText, Button, Card, Screen, color, radius, space, toneColor } from '@/ui';
-import { Chip, ChipRow } from '@/ui/chip';
+import { AppText, Button, Card, Screen, color, space, toneColor } from '@/ui';
+import { Segmented } from '@/ui/segmented';
 import { Icon } from '@/ui/icon';
 import { LineChart } from '@/ui/line-chart';
 import { PhotoStrip } from '@/ui/photo-strip';
@@ -47,6 +48,7 @@ export default function ProductScreen() {
     const today = new Date().toISOString().slice(0, 10);
     // dnešek = aktuální cena položky (stejná jako v seznamu)
     if (s.length && s[s.length - 1][0] < today) s.push([today, p.head.currentPrice]);
+    else if (s.length) s[s.length - 1] = [today, p.head.currentPrice];
     return s;
   }, [hist.data, id, range, p]);
 
@@ -69,6 +71,7 @@ export default function ProductScreen() {
   const s = p.stats;
   const sell = () => router.push({ pathname: '/sell/[key]', params: { key: p.key } });
   const addLot = () => router.push({ pathname: '/add', params: { from: p.key } });
+  const remove = () => confirmDelete(p, () => (router.canGoBack() ? router.back() : router.replace('/')));
 
   return (
     <Screen>
@@ -89,6 +92,9 @@ export default function ProductScreen() {
                 {t('Otevřít na trhu')}
               </Stack.Toolbar.MenuAction>
             ) : null}
+            <Stack.Toolbar.MenuAction icon="trash" destructive onPress={remove}>
+              {t('Smazat produkt')}
+            </Stack.Toolbar.MenuAction>
           </Stack.Toolbar.Menu>
         </Stack.Toolbar>
       )}
@@ -119,21 +125,19 @@ export default function ProductScreen() {
             {id ? (hist.isLoading ? t('Načítám historii…') : t('Pro tento produkt zatím není historie cen.')) : t('Produkt není spárovaný s trhem – historie cen není k dispozici.')}
           </AppText>
         )}
-        <ChipRow>
-          {(Object.keys(RANGES) as Range[]).map((r) => (
-            <Chip key={r} label={r === 'ALL' ? t('Vše') : t(r)} active={range === r} onPress={() => setRange(r)} />
-          ))}
-        </ChipRow>
+        <Segmented<Range> stretch options={(Object.keys(RANGES) as Range[]).map((r) => ({ value: r, label: r === 'ALL' ? t('Vše') : t(r) }))} value={range} onChange={setRange} />
       </Card>
 
-      <View style={styles.tiles}>
-        <Tile sf="shippingbox" md="inventory-2" label={t('Držíš')} value={`${s.held} ${t('ks')}`} />
-        <Tile sf="banknote" md="payments" label={t('Hodnota')} value={money(s.value, currency)} />
-        <Tile sf="cart" md="shopping-cart" label={t('Ø nákup / ks')} value={money(p.avgCost, currency)} />
-        <Tile sf="chart.line.uptrend.xyaxis" md="trending-up" label={t('Profit')} value={signedMoney(s.profit, currency)} sub={pct(s.profitPct)} tint={toneColor[tone(s.profit)]} />
-        <Tile sf="creditcard" md="credit-card" label={t('Investováno')} value={money(s.cost, currency)} />
-        {s.sold > 0 && <Tile sf="checkmark.seal" md="verified" label={t('Realizovaný zisk')} value={signedMoney(s.realized, currency)} tint={toneColor[tone(s.realized)]} />}
-      </View>
+      <Card>
+        <View style={styles.tiles}>
+          <Tile sf="shippingbox" md="inventory-2" label={t('Držíš')} value={`${s.held} ${t('ks')}`} />
+          <Tile sf="banknote" md="payments" label={t('Hodnota')} value={money(s.value, currency)} />
+          <Tile sf="cart" md="shopping-cart" label={t('Ø nákup / ks')} value={money(p.avgCost, currency)} />
+          <Tile sf="chart.line.uptrend.xyaxis" md="trending-up" label={t('Profit')} value={signedMoney(s.profit, currency)} sub={pct(s.profitPct)} tint={toneColor[tone(s.profit)]} />
+          <Tile sf="creditcard" md="credit-card" label={t('Investováno')} value={money(s.cost, currency)} />
+          {s.sold > 0 && <Tile sf="checkmark.seal" md="verified" label={t('Realizovaný zisk')} value={signedMoney(s.realized, currency)} tint={toneColor[tone(s.realized)]} />}
+        </View>
+      </Card>
 
       {s.held > 0 && <AlertsCard key={p.key} position={p} currency={currency} />}
 
@@ -186,6 +190,11 @@ export default function ProductScreen() {
         {s.held > 0 && <Button style={{ flex: 1 }} label={t('Prodat')} onPress={sell} />}
         <Button style={{ flex: 1 }} variant="secondary" label={t('Další nákup')} onPress={addLot} />
       </View>
+      <Pressable onPress={remove} style={styles.delete} accessibilityRole="button">
+        <AppText variant="bodyStrong" color={color.neg}>
+          {t('Smazat produkt')}
+        </AppText>
+      </Pressable>
     </Screen>
   );
 }
@@ -214,21 +223,13 @@ function Tile({ sf, md, label, value, sub, tint }: { sf: IconProps['sf']; md: Ic
 
 const styles = StyleSheet.create({
   hero: { alignItems: 'center', gap: space.sm, paddingTop: space.md, paddingBottom: space.md, paddingHorizontal: space.lg, marginHorizontal: -space.lg },
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: space.md },
-  tile: {
-    flexBasis: '46%',
-    flexGrow: 1,
-    gap: 4,
-    padding: space.lg,
-    borderRadius: radius.lg,
-    borderCurve: 'continuous',
-    backgroundColor: color.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: color.borderStrong,
-  },
+  // údaje ve dvou sloupcích v jednom bloku – stejně jako Výkon v Analýze
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', rowGap: space.lg },
+  tile: { width: '50%', gap: 4, paddingRight: space.md },
   tileHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   linkCard: { flexDirection: 'row', alignItems: 'center', gap: space.md },
   lot: { flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: color.border },
   actions: { flexDirection: 'row', gap: space.sm },
+  delete: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
 });

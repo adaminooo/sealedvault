@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
   seg: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: radius.pill, padding: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: color.border },
   segBtn: { width: 38, height: 30, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
   segOn: { backgroundColor: 'rgba(143,107,255,0.28)', boxShadow: 'inset 0 0 0 1px rgba(169,157,255,0.45)' },
-  sortBtn: { paddingHorizontal: space.md, paddingVertical: 4, borderRadius: radius.sm, backgroundColor: color.surface2 },
+  sortBtn: { paddingHorizontal: space.md, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: 'rgba(255,255,255,0.05)' },
   empty: { alignItems: 'center', gap: space.sm, paddingVertical: space.xxl },
   emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(143,107,255,0.14)', marginBottom: space.xs },
 });
