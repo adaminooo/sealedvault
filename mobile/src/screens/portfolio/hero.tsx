@@ -101,7 +101,7 @@ export function PortfolioHero({ stats, positions, currency, dayChange, trend }: 
                 </AppText>
                 <View style={styles.resultLine}>
                   <AppText variant="bodyStrong" tabular color={toneColor[tone(dayChange.abs)]}>
-                    {signedMoney(dayChange.abs, currency)}
+                    {signedMoney(Math.round(dayChange.abs), currency)}
                   </AppText>
                   <TrendPill small tone={tone(dayChange.abs)} label={pct(dayChange.pct)} />
                 </View>

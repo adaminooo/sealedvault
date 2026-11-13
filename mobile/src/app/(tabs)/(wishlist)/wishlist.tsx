@@ -75,7 +75,7 @@ export default function WishlistScreen() {
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={market ? (game === 'Pokémon' ? 'např. 151 upc' : game === 'One Piece' ? 'např. romance dawn box' : 'např. origins display') : t('Načítám katalog produktů…')}
+            placeholder={market ? t('např. {0}', game === 'Pokémon' ? '151 upc' : game === 'One Piece' ? 'romance dawn box' : 'origins display') : t('Načítám katalog produktů…')}
             placeholderTextColor={color.faint}
             editable={!!market}
             autoCorrect={false}

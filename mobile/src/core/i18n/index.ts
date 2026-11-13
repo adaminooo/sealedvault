@@ -1,4 +1,5 @@
 import { EN } from './en';
+import { EN_MOBILE } from './en-mobile';
 
 /**
  * Jazyk appky – stejný princip jako web: texty v kódu jsou česky a slouží jako klíč,
@@ -45,7 +46,7 @@ const fill = (s: string, args: unknown[]) => (args.length ? s.replace(/\{(\d+)\}
 
 // klíče slovníku jsou s obyčejnými mezerami (texty v appce mají před jednotkami pevné mezery)
 const norm = (s: string) => s.replace(/ /g, ' ');
-const DICT: Record<string, string> = LANG === 'en' ? Object.fromEntries(Object.entries(EN).map(([k, v]) => [norm(k), v])) : {};
+const DICT: Record<string, string> = LANG === 'en' ? Object.fromEntries(Object.entries({ ...EN, ...EN_MOBILE }).map(([k, v]) => [norm(k), v])) : {};
 
 /** Přeloží text (klíč = český text); neznámý text vrátí beze změny */
 export function t(cs: string, ...args: unknown[]): string {

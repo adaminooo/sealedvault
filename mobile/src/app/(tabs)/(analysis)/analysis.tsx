@@ -169,8 +169,8 @@ export default function AnalysisScreen() {
         <View style={styles.grid}>
           <Metric cell label={t('Ročně')} infoKey="xirr" info={info} value={annual == null ? '—' : pct(annual * 100)} sub={annual == null ? t('min. 30 dní dat') : t('XIRR')} tint={annual != null ? toneColor[tone(annual)] : undefined} />
           <Metric cell label={t('Ø držení')} infoKey="hold" info={info} value={holdingTxt} />
-          <Metric cell label={t('Za 7 dní')} infoKey="d7" info={info} value={ch7 ? pct(ch7.pct) : '—'} sub={ch7 ? signedMoney(ch7.abs, currency) : t('po týdnu záznamu')} tint={ch7 ? toneColor[tone(ch7.abs)] : undefined} />
-          <Metric cell label={t('Za 30 dní')} infoKey="d30" info={info} value={ch30 ? pct(ch30.pct) : '—'} sub={ch30 ? signedMoney(ch30.abs, currency) : t('po měsíci záznamu')} tint={ch30 ? toneColor[tone(ch30.abs)] : undefined} />
+          <Metric cell label={t('Za 7 dní')} infoKey="d7" info={info} value={ch7 ? pct(ch7.pct) : '—'} sub={ch7 ? signedMoney(Math.round(ch7.abs), currency) : t('po týdnu záznamu')} tint={ch7 ? toneColor[tone(ch7.abs)] : undefined} />
+          <Metric cell label={t('Za 30 dní')} infoKey="d30" info={info} value={ch30 ? pct(ch30.pct) : '—'} sub={ch30 ? signedMoney(Math.round(ch30.abs), currency) : t('po měsíci záznamu')} tint={ch30 ? toneColor[tone(ch30.abs)] : undefined} />
         </View>
         <Bubble keys={['xirr', 'hold', 'd7', 'd30']} info={info} />
       </Panel>
