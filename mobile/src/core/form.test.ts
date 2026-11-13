@@ -4,6 +4,8 @@ describe('form', () => {
   it('čte česká i anglická čísla', () => {
     expect(parseNum('1 299,50')).toBe(1299.5);
     expect(parseNum('1299.5')).toBe(1299.5);
+    expect(parseNum('1,299.50')).toBe(1299.5);
+    expect(parseNum('1.299,50')).toBe(1299.5);
     expect(parseNum('')).toBeNaN();
     expect(parseNum('abc')).toBeNaN();
   });

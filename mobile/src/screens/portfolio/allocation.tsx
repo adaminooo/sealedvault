@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { totalStats } from '@/core/calc';
 import { money, pct, tone } from '@/core/format';
-import { t } from '@/core/i18n';
+import { LANG, t } from '@/core/i18n';
 import { GAMES, type Currency, type Game, type PortfolioItem } from '@/core/types';
 import { AppText, color, font, gameColor, radius, space, toneColor } from '@/ui';
 import { Donut } from '@/ui/donut';
@@ -79,7 +79,7 @@ export function Allocation({ items, currency, active, onPick }: { items: Portfol
               </AppText>
               {focus && (
                 <AppText variant="caption" tabular color={color.muted}>
-                  {Math.round(shareOf(focus) * 100)} %
+                  {Math.round(shareOf(focus) * 100)}{PCT}
                 </AppText>
               )}
             </View>
@@ -121,7 +121,7 @@ export function Allocation({ items, currency, active, onPick }: { items: Portfol
                   {!empty && (
                     <AppText style={styles.share} tabular>
                       {Math.round(shareOf(r) * 100)}
-                      <AppText style={styles.shareUnit}> %</AppText>
+                      <AppText style={styles.shareUnit}>{PCT}</AppText>
                     </AppText>
                   )}
                 </Pressable>
@@ -133,6 +133,9 @@ export function Allocation({ items, currency, active, onPick }: { items: Portfol
     </LinearGradient>
   );
 }
+
+// mezera před % jen v češtině (jako ve zbytku appky)
+const PCT = LANG === 'en' ? '%' : ' %';
 
 const styles = StyleSheet.create({
   border: { borderRadius: radius.lg + 4, borderCurve: 'continuous', padding: 1, boxShadow: '0 24px 50px -30px rgba(143,107,255,0.35)' },

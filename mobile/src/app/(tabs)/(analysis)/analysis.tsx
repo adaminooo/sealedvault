@@ -208,7 +208,7 @@ export default function AnalysisScreen() {
         </View>
         <View style={styles.controls}>
           <Segmented value={liq.basis} onChange={(basis) => setLiq({ ...liq, basis })} options={[{ value: 'trend', label: t('Běžná cena') }, { value: 'low', label: t('Rychlý prodej') }]} />
-          <Segmented value={String(liq.feePct)} onChange={(v) => setLiq({ ...liq, feePct: Number(v) })} options={['0', '5', '10'].map((f) => ({ value: f, label: `${f} %` }))} />
+          <Segmented value={String(liq.feePct)} onChange={(v) => setLiq({ ...liq, feePct: Number(v) })} options={['0', '5', '10'].map((f) => ({ value: f, label: LANG === 'en' ? `${f}%` : `${f} %` }))} />
         </View>
       </Panel>
 
@@ -234,7 +234,7 @@ export default function AnalysisScreen() {
                   {r.label}
                 </AppText>
                 <AppText variant="caption" tabular color={color.muted} style={{ fontFamily: font.semibold }}>
-                  {Math.round(r.share * 100)} %
+                  {Math.round(r.share * 100)}{LANG === 'en' ? '%' : ' %'}
                 </AppText>
               </View>
               <View style={styles.bar}>

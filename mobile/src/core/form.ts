@@ -1,16 +1,20 @@
 import type { SetInfo } from './catalog';
+import { LANG } from './i18n';
 import type { ProductType } from './types';
 
 /** Přijme „1 299,50“ i „1299.5“; prázdné/nesmysl = NaN */
 export function parseNum(s: string): number {
-  const t = s.replace(/[\s ]/g, '').replace(',', '.');
+  let t = s.replace(/[\s ]/g, '');
+  // čárka i tečka zároveň („1,299.50“ / „1.299,50“): desetinný je ten poslední oddělovač, druhý odděluje tisíce
+  if (t.includes(',') && t.includes('.')) t = t.lastIndexOf(',') > t.lastIndexOf('.') ? t.replace(/\./g, '').replace(',', '.') : t.replace(/,/g, '');
+  else t = t.replace(',', '.');
   if (!t) return NaN;
   const n = Number(t);
   return Number.isFinite(n) ? n : NaN;
 }
 
-/** Číslo do pole formuláře (česky s čárkou, bez zbytečných nul) */
-export const numStr = (n: number | undefined) => (n === undefined || n === 0 ? '' : String(Math.round(n * 100) / 100).replace('.', ','));
+/** Číslo do pole formuláře bez zbytečných nul (česky s čárkou, anglicky s tečkou) */
+export const numStr = (n: number | undefined) => (n === undefined || n === 0 ? '' : String(Math.round(n * 100) / 100).replace('.', LANG === 'en' ? '.' : ','));
 
 export const todayIso = () => {
   const d = new Date();

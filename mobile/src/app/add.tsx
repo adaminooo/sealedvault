@@ -357,7 +357,7 @@ export default function AddScreen() {
                 value={buy}
                 onChangeText={setBuy}
                 keyboardType="decimal-pad"
-                placeholder={unitPrice != null ? numStr(toDisplay(unitPrice, currency)) : '0'}
+                placeholder={unitPrice != null ? t('např. {0}', numStr(toDisplay(unitPrice, currency))) : '0'}
                 hint={total != null && qty > 1 ? t('Celkem {0}', money(fromDisplay(total, currency), currency)) : undefined}
               />
               <DateField label={t('Datum nákupu')} value={buyDate} onChange={setBuyDate} />
