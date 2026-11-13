@@ -159,14 +159,15 @@ function WishCard({ w, now, dist, currency, marketUrl }: { w: WishlistItem; now:
   const hit = dist != null && dist <= 0;
   const [target, setTarget] = useState(w.targetPrice ? numStr(toDisplay(w.targetPrice, currency)) : '');
   const input = useRef<ComponentRef<typeof TextInput>>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cur = currency === 'CZK' ? t('Kč') : '€';
   // o kolik % musí cena ještě klesnout (z dnešní ceny), aby byla na cíli
   const drop = now != null && w.targetPrice && now > w.targetPrice ? ((now - w.targetPrice) / now) * 100 : null;
   // naplnění ukazatele: 100 % = na cíli; 50 % a víc nad cílem = skoro prázdný
   const fill = dist == null ? 0 : Math.max(4, Math.min(100, 100 - dist * 200));
 
-  const saveTarget = () => {
-    const v = parseNum(target);
+  const saveTarget = (text = target) => {
+    const v = parseNum(text);
     const next = Number.isFinite(v) && v > 0 ? fromDisplay(v, currency) : undefined;
     if (next !== w.targetPrice) void wishStore.put({ ...w, targetPrice: next });
   };
@@ -219,8 +220,14 @@ function WishCard({ w, now, dist, currency, marketUrl }: { w: WishlistItem; now:
             <TextInput
               ref={input}
               value={target}
-              onChangeText={setTarget}
-              onBlur={saveTarget}
+              onChangeText={(v) => {
+                setTarget(v);
+                // uloží se i bez opuštění pole (krátce po dopsání)
+                if (timer.current) clearTimeout(timer.current);
+                timer.current = setTimeout(() => saveTarget(v), 900);
+              }}
+              onBlur={() => saveTarget()}
+              onSubmitEditing={() => saveTarget()}
               keyboardType="decimal-pad"
               placeholder={t('nastavit')}
               placeholderTextColor={color.faint}
