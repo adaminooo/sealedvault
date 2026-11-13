@@ -65,7 +65,7 @@ export function Allocation({ items, currency, active, onPick }: { items: Portfol
         <View style={styles.body}>
           <View style={styles.donutWrap}>
             <Donut
-              size={148}
+              size={128}
               stroke={16}
               segments={rows.map((r) => ({ key: r.game, share: shareOf(r), color: gameColor[r.game][0], gradient: [gameColor[r.game][1], gameColor[r.game][2]] as const }))}
               highlight={focus?.game ?? null}
@@ -141,9 +141,9 @@ const styles = StyleSheet.create({
   seg: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: radius.pill, padding: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: color.border },
   segBtn: { paddingHorizontal: space.md, paddingVertical: 6, borderRadius: radius.pill },
   segOn: { backgroundColor: 'rgba(143,107,255,0.28)', boxShadow: 'inset 0 0 0 1px rgba(169,157,255,0.45)' },
-  body: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
-  donutWrap: { width: 148, height: 148, alignItems: 'center', justifyContent: 'center' },
-  center: { position: 'absolute', alignItems: 'center', paddingHorizontal: 26, gap: 1 },
+  body: { flexDirection: 'row', alignItems: 'center', gap: space.md },
+  donutWrap: { width: 128, height: 128, alignItems: 'center', justifyContent: 'center' },
+  center: { position: 'absolute', alignItems: 'center', paddingHorizontal: 22, gap: 1 },
   centerValue: { fontFamily: font.displayBold, fontSize: 17, letterSpacing: -0.4, color: color.text },
   legend: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingVertical: 7, paddingHorizontal: space.sm, borderRadius: radius.sm },
   legendOn: { backgroundColor: 'rgba(255,255,255,0.06)' },

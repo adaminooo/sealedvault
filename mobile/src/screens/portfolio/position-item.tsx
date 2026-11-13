@@ -51,14 +51,24 @@ function Linked({ p, marketUrl, children }: { p: Position; marketUrl?: string; c
   );
 }
 
+/**
+ * Čísla vpravo: u držených hodnota a nerealizovaný zisk,
+ * u úplně prodaných tržba a realizovaný zisk (jinak by tam svítilo 0 Kč).
+ */
+function figures(p: Position) {
+  const s = p.stats;
+  if (s.held > 0) return { sold: false, main: s.value, profit: s.profit, pct: s.profitPct };
+  return { sold: true, main: s.proceeds, profit: s.realized, pct: s.soldCost > 0 ? (s.realized / s.soldCost) * 100 : null };
+}
+
 /** Obrázek produktu (jednotné zaoblení) se štítkem počtu kusů */
 function Media({ p, size }: { p: Position; size: number }) {
   return (
     <View>
       <ProductThumb item={p.head} size={size} />
-      <View style={styles.qty}>
+      <View style={[styles.qty, p.stats.held === 0 && styles.qtySold]}>
         <AppText style={styles.qtyText} tabular>
-          {p.stats.held}×
+          {p.stats.held > 0 ? `${p.stats.held}×` : t("prodáno")}
         </AppText>
       </View>
     </View>
@@ -72,7 +82,8 @@ function Media({ p, size }: { p: Position; size: number }) {
  */
 export const PositionRow = memo(function PositionRow({ p, currency, change, marketUrl }: ItemProps) {
   const d1 = change?.d1;
-  const tn = tone(p.stats.profit);
+  const f = figures(p);
+  const tn = tone(f.profit);
   return (
     <Linked p={p} marketUrl={marketUrl}>
       {(pressed) => (
@@ -101,11 +112,12 @@ export const PositionRow = memo(function PositionRow({ p, currency, change, mark
           </View>
           <View style={styles.right}>
             <AppText style={styles.value} tabular numberOfLines={1}>
-              {money(p.stats.value, currency)}
+              {money(f.main, currency)}
             </AppText>
-            <TrendPill small tone={tn} label={pct(p.stats.profitPct).replace(/^[+−-]/, '')} />
+            <TrendPill small tone={tn} label={pct(f.pct).replace(/^[+−-]/, '')} />
             <AppText variant="caption" tabular color={toneColor[tn]} numberOfLines={1}>
-              {signedMoney(p.stats.profit, currency)}
+              {f.sold ? `${t("zisk")} ` : ''}
+              {signedMoney(f.profit, currency)}
             </AppText>
           </View>
         </View>
@@ -116,7 +128,8 @@ export const PositionRow = memo(function PositionRow({ p, currency, change, mark
 
 /** Dlaždice mřížky: velký obrázek se září v barvě hry, název, hodnota a zisk */
 export const PositionCard = memo(function PositionCard({ p, currency, marketUrl }: ItemProps) {
-  const tn = tone(p.stats.profit);
+  const f = figures(p);
+  const tn = tone(f.profit);
   return (
     <Linked p={p} marketUrl={marketUrl}>
       {(pressed) => (
@@ -124,9 +137,9 @@ export const PositionCard = memo(function PositionCard({ p, currency, marketUrl 
           <View style={styles.cardMedia}>
             <Glow size={170} color={gameColor[p.game][0]} opacity={0.22} style={{ alignSelf: 'center', top: -25 }} />
             <ProductThumb item={p.head} size={104} />
-            <View style={[styles.qty, styles.cardQty]}>
+            <View style={[styles.qty, styles.cardQty, p.stats.held === 0 && styles.qtySold]}>
               <AppText style={styles.qtyText} tabular>
-                {p.stats.held}×
+                {p.stats.held > 0 ? `${p.stats.held}×` : t("prodáno")}
               </AppText>
             </View>
           </View>
@@ -135,9 +148,9 @@ export const PositionCard = memo(function PositionCard({ p, currency, marketUrl 
           </AppText>
           <View style={styles.cardFoot}>
             <AppText style={styles.cardValue} tabular numberOfLines={1} adjustsFontSizeToFit>
-              {money(p.stats.value, currency)}
+              {money(f.main, currency)}
             </AppText>
-            <TrendPill small tone={tn} label={pct(p.stats.profitPct).replace(/^[+−-]/, '')} />
+            <TrendPill small tone={tn} label={pct(f.pct).replace(/^[+−-]/, '')} />
           </View>
         </View>
       )}
@@ -177,6 +190,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#0f0f16',
   },
+  // úplně prodaná položka: tlumený štítek místo bílého
+  qtySold: { backgroundColor: color.muted },
   qtyText: { fontFamily: 'SpaceGrotesk_700Bold', fontSize: 11, lineHeight: 13, color: color.bg },
   card: { ...cardBase, flex: 1, gap: space.sm, padding: space.md, margin: space.xs + 1, overflow: 'hidden' },
   cardMedia: { height: 120, alignItems: 'center', justifyContent: 'center' },

@@ -5,9 +5,10 @@ import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { totalStats } from '@/core/calc';
-import { dirLabels, parseSort, SORT_FIELDS, type SortField } from '@/core/filters';
+import { dirLabels, parseSort, SORT_FIELDS, type Filters, type SortField } from '@/core/filters';
 import { t } from '@/core/i18n';
 import { productUrl } from '@/core/market';
+import { groupPositions } from '@/core/portfolio';
 import { ALL_ID, portfolioOf } from '@/core/portfolios';
 import { GAMES, type Currency } from '@/core/types';
 import { useMarket } from '@/data/queries';
@@ -20,9 +21,11 @@ import { AppText, Button, Card, color, font, gameColor, radius, space } from '@/
 import { Backdrop } from '@/ui/backdrop';
 import { Chip, ChipRow } from '@/ui/chip';
 import { Icon } from '@/ui/icon';
+import { Segmented } from '@/ui/segmented';
 
 const IOS = process.env.EXPO_OS === 'ios';
 type ListView = 'list' | 'grid';
+type Holding = Filters['holding'];
 
 /** Značka v hlavičce (jako na webu): logo + Sealed + fialové Vault */
 function Brand() {
@@ -45,6 +48,8 @@ export default function PortfolioScreen() {
   const [currency] = useStoredState<Currency>('currency', 'CZK');
   const [listView, setListView] = useStoredState<ListView>('view', 'list');
   const stats = useMemo(() => totalStats(view.base), [view.base]);
+  // hlavní karta počítá jen držené produkty, nezávisle na přepínači seznamu
+  const heldCount = useMemo(() => groupPositions(view.base).length, [view.base]);
   const sort = parseSort(filters.sort);
   const games = useMemo(() => GAMES.filter((g) => view.pItems.some((i) => i.game === g)), [view.pItems]);
   const gameCount = useMemo(() => {
@@ -70,7 +75,7 @@ export default function PortfolioScreen() {
         </ChipRow>
       )}
 
-      {view.pItems.length > 0 && <PortfolioHero stats={stats} positions={view.positions.length} currency={currency} dayChange={view.dayChange} trend={view.trend} />}
+      {view.pItems.length > 0 && <PortfolioHero stats={stats} positions={heldCount} currency={currency} dayChange={view.dayChange} trend={view.trend} />}
       {view.pItems.length > 0 && <Allocation items={view.pItems} currency={currency} active={filters.game} onPick={(g) => setFilters({ ...filters, game: g })} />}
 
       {view.pItems.length > 0 && (
@@ -103,6 +108,16 @@ export default function PortfolioScreen() {
               })}
             </View>
           </View>
+          <Segmented<Holding>
+            stretch
+            options={[
+              { value: 'held', label: t('Držené') },
+              { value: 'sold', label: t('Prodané') },
+              { value: 'all', label: t('Vše') },
+            ]}
+            value={filters.holding}
+            onChange={(h) => setFilters({ ...filters, holding: h })}
+          />
           {games.length > 1 && (
             <ChipRow>
               <Chip label={`${t('Vše')}  ${gameCount.all}`} active={filters.game === 'all'} onPress={() => setFilters({ ...filters, game: 'all' })} />
@@ -193,7 +208,7 @@ export default function PortfolioScreen() {
             <View style={[styles.empty, { paddingVertical: space.xl }]}>
               <Icon sf="magnifyingglass" md="search-off" size={26} color={color.faint} />
               <AppText color={color.muted} style={{ textAlign: 'center' }}>
-                {search.trim() ? t('Nic neodpovídá „{0}“.', search.trim()) : t('Filtrům neodpovídá žádná položka.')}
+                {search.trim() ? t('Nic neodpovídá „{0}“.', search.trim()) : filters.holding === 'sold' ? t('Zatím jsi nic neprodal.') : t('Filtrům neodpovídá žádná položka.')}
               </AppText>
             </View>
           )

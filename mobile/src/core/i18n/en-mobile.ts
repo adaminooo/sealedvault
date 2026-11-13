@@ -156,6 +156,7 @@ export const EN_MOBILE: Record<string, string> = {
   'Tržba po poplatcích': 'Revenue after fees',
   'Ø nákup / ks': 'Avg. cost / pc',
   'Hra': 'Game',
+  zisk: 'profit',
 
   // Fotky, alerty, upozornění
   'Appka nemá přístup k fotoaparátu – povol ho v Nastavení telefonu.': 'The app can’t access the camera – allow it in your phone’s Settings.',

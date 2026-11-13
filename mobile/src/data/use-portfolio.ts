@@ -32,9 +32,9 @@ export function usePortfolioView(search = '') {
   const [filters] = useFilters();
 
   const pItems = useMemo(() => (active === ALL_ID ? all : all.filter((it) => portfolioOf(it) === active)), [all, active]);
-  // base = po filtrech (hlavní karta), visible = navíc po vyhledávání (seznam)
-  const base = useMemo(() => applyFilters(pItems, filters), [pItems, filters]);
-  const visible = useMemo(() => (search.trim() ? applyFilters(base, { ...filters, search }) : base), [base, filters, search]);
+  // base = hlavní karta (vždy jen držené kusy), visible = seznam (přepínač Držené/Prodané/Vše + vyhledávání)
+  const base = useMemo(() => applyFilters(pItems, { ...filters, holding: 'held' }), [pItems, filters]);
+  const visible = useMemo(() => applyFilters(pItems, { ...filters, search }), [pItems, filters, search]);
 
   const ids = useMemo(() => pItems.flatMap((i) => (i.cmProductId ? [i.cmProductId] : [])), [pItems]);
   const hist = useHistory(ids, isoDaysAgo(90)).data ?? null;
