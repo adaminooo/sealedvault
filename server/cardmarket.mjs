@@ -185,15 +185,26 @@ export async function findTcgProduct(game, name) {
   const wanted = norm(name).replace(/\bpokemon center\b/, 'pokemon center');
   const groups = await tcgGroups(categoryId);
   // edice, jejichž název (nebo poslední slovo u „Scarlet & Violet 151“) je v názvu produktu
+  // One Piece: TCGplayer má u balíčků číslo („Starter Deck 4 Animal Kingdom Pirates“), Cardmarket ne
+  // („Starter Deck: Animal Kingdom Pirates“) → porovnává se i název edice bez čísel a bez „Starter/Ultra Deck“
+  const opCore = (k) => k.replace(/\b\d+\b/g, ' ').replace(/^\s*(starter|ultra)\s+deck\s+/, '').replace(/\s+/g, ' ').trim();
+  const matches = (g) =>
+    g.key.length >= 3 &&
+    (wanted.includes(g.key) ||
+      (g.key.split(' ').length > 1 && wanted.startsWith(g.key.split(' ').at(-1) + ' ')) ||
+      (game === 'One Piece' && opCore(g.key).length >= 4 && wanted.includes(opCore(g.key))));
   const candidates = groups
-    .filter((g) => g.key.length >= 3 && (wanted.includes(g.key) || (g.key.split(' ').length > 1 && wanted.startsWith(g.key.split(' ').at(-1) + ' '))))
+    .filter(matches)
     .sort((a, b) => b.key.length - a.key.length)
     .slice(0, 3);
   let best = { score: 0, product: null };
   let second = 0;
+  // One Piece: čísla v názvu (ročník, Vol. 2, OP-05…) musí sedět – jinak by se spárovala jiná vlna
+  const nums = game === 'One Piece' ? wanted.match(/\b\d+\b/g) ?? [] : [];
   const scan = async (list) => {
     for (const g of list) {
       for (const p of await tcgGroupProducts(categoryId, g.id)) {
+        if (nums.length && !nums.every((n) => new RegExp(`\\b${n}\\b`).test(p.name))) continue;
         const s = similarity(wanted, p.name);
         if (s > best.score) {
           second = best.score;
@@ -207,7 +218,11 @@ export async function findTcgProduct(game, name) {
   // (tcgcsv je řadí od nejnovějších; obsah edic se drží v paměti 24 h)
   // TCGplayer je typicky dává do „Miscellaneous Cards & Products“
   if (best.score < 0.8) await scan(groups.filter((g) => g.key.startsWith('miscellaneous')));
-  if (best.score < 0.8) await scan(groups.filter((g) => !candidates.includes(g) && !g.key.startsWith('miscellaneous')).slice(0, 24));
+  // (One Piece má jen ~90 edic → projdou se všechny; u Pokémonů jen 24 nejnovějších)
+  if (best.score < 0.8) {
+    const rest = groups.filter((g) => !candidates.includes(g) && !g.key.startsWith('miscellaneous'));
+    await scan(game === 'One Piece' ? rest : rest.slice(0, 24));
+  }
   if (best.score < 0.8) return null;
   // víc stejně dobrých kandidátů (např. „Wave 1 – Blue“ vs „Wave 2 – White“) → nejednoznačné
   return { ...best.product, ambiguous: best.score < 2 && best.score - second < 0.05 };
