@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { setEurRate } from '@/core/format';
 import { autoPriceFor, bestMatch, productImageFor } from '@/core/market';
-import { items as itemsStore, useCollection } from '@/db/store';
+import { items as itemsStore, useCollection, wishlist as wishStore } from '@/db/store';
 
 import { useMarket } from './queries';
 
@@ -18,6 +18,7 @@ import { useMarket } from './queries';
  */
 export function useAutoPrices() {
   const list = useCollection(itemsStore);
+  const wishes = useCollection(wishStore);
   const { data: market } = useMarket();
 
   useEffect(() => setEurRate(market?.eurCzk), [market]);
@@ -70,4 +71,24 @@ export function useAutoPrices() {
       }
     })();
   }, [market, list]);
+
+  // obrázky i u produktů z wishlistu
+  const triedWish = useRef(new Set<string>());
+  useEffect(() => {
+    if (!market) return;
+    const todo = wishes.filter((w) => w.cmProductId && !w.productImage && !triedWish.current.has(`${w.id}:${w.cmProductId}`));
+    if (!todo.length) return;
+    (async () => {
+      for (const w of todo) {
+        triedWish.current.add(`${w.id}:${w.cmProductId}`);
+        const p = market.byId.get(w.cmProductId!);
+        if (!p) continue;
+        const url = await productImageFor(p).catch(() => null);
+        if (url) {
+          const fresh = await wishStore.get(w.id);
+          if (fresh && !fresh.productImage) await wishStore.put({ ...fresh, productImage: url });
+        }
+      }
+    })();
+  }, [market, wishes]);
 }
